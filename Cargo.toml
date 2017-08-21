@@ -1,0 +1,8 @@
+[package]
+name = "restful-sunsaver"
+version = "0.1.0"
+authors = ["Guy Taylor <thebigguy.co.uk@gmail.com>"]
+
+[dependencies]
+libmodbus-rs = { git = "https://github.com/TheBiggerGuy/libmodbus-rs.git", branch = "bindgen-update" }
+clap = "2.19.3"
