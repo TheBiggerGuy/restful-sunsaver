@@ -4,4 +4,5 @@
 target
 
 Dockerfile
+Dockerfile.x86
 .dockerignore
