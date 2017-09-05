@@ -1,10 +1,9 @@
 FROM arm32v7/rust:latest
 
-
+RUN mkdir /build
 COPY * /build/
-COPY src /build/src
 WORKDIR /build
 
 RUN cargo build
 
-ENTRYPOINT ["cargo", "run", "--"]
+ENTRYPOINT [ "cargo", "run", "--" ]

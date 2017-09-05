@@ -6,3 +6,11 @@ authors = ["Guy Taylor <thebigguy.co.uk@gmail.com>"]
 [dependencies]
 libmodbus-rs = { git = "https://github.com/TheBiggerGuy/libmodbus-rs.git", branch = "bindgen-update" }
 clap = "2.19.3"
+log = "0.3"
+env_logger = "0.3"
+iron = "0.5.*"
+router = "0.5.*"
+staticfile = "*"
+serde = "1.0.*"
+serde_derive = "1.0.*"
+serde_json = "1.0.*"

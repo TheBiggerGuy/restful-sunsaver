@@ -1,10 +1,11 @@
-.PHONY: docker-arm docker-x86
+.PHONY: docker-arm docker-x86 run
 
-Dockerfile.x86: Dockerfile
-	cat Dockerfile | sed -E 's/FROM.*/FROM rust:latest/' > Dockerfile.x86
+run:
+	RUST_LOG=main=info cargo run -- --device=test_file
 
-docker-arm:
+armv7hf-debian-qemu:
+	git submodule update --init
+
+docker: armv7hf-debian-qemu
 	docker build -t thebiggerguy/restful-sunsaver:latest .
 
-docker-x86: Dockerfile.x86
-	docker build -t thebiggerguy/restful-sunsaver:x86 -f Dockerfile.x86 .
