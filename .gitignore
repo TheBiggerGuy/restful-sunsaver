@@ -11,4 +11,4 @@ Cargo.lock
 /target/
 **/*.rs.bk
 
-Dockerfile.x86
+.cargo

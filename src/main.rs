@@ -9,12 +9,14 @@ extern crate staticfile;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate ctrlc;
 
 use std::fs;
 use std::path::Path;
 use std::os::unix::fs::FileTypeExt;
 use std::sync::{Arc, Mutex};
 use std::convert::From;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use clap::{App, Arg};
 
@@ -103,5 +105,14 @@ fn main() {
     router.get("/", Static::new(Path::new("web")), "index");
     router.get("/api", api_handler, "api");
 
-    Iron::new(router).http("0.0.0.0:4000").unwrap();
+
+    let running = Arc::new(AtomicBool::new(true));
+    let r = running.clone();
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    }).expect("Error setting Ctrl-C handler");
+    let mut listening = Iron::new(router).http("0.0.0.0:4000").unwrap();
+    debug!("Started server");
+    while running.load(Ordering::SeqCst) {}
+    listening.close().unwrap();
 }

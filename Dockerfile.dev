@@ -15,11 +15,3 @@ RUN mkdir /build && \
     cd / && \
     rm -rf build
 
-RUN mkdir /build
-COPY ./ /build/
-WORKDIR /build
-
-RUN cargo build
-
-EXPOSE 4000
-ENTRYPOINT [ "cargo", "run", "--" ]
