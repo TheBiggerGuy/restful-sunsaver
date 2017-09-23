@@ -1,7 +1,10 @@
 use std::fs::{OpenOptions, File};
 use std::io::Read;
+use std::result::Result::{self, Ok, Err};
 
-use libmodbus_rs::{Modbus, ModbusClient, ModbusRTU, SerialMode};
+use libmodbus_rs::{Modbus, ModbusClient, ModbusRTU, SerialMode, Timeout};
+
+use retry::{Retry, RetryError};
 
 pub trait SunSaverConnection {
     fn read_registers(&mut self) ->  [u16; 44];
@@ -28,15 +31,31 @@ impl ModbusSunSaverConnection {
              * Flow control: None
             All addresses listed are for the request PDU.
             The SunSaver MPPT default server address: 0x01. */
+        debug!("Configuring device {}", device);
         let mut connection = Modbus::new_rtu(device, 9600, 'N', 8, 2).unwrap();
         assert!(connection.set_slave(0x01).is_ok());
         assert!(connection.rtu_set_serial_mode(SerialMode::MODBUS_RTU_RS232).is_ok());
-
+        assert!(connection.set_response_timeout( Timeout { sec: 1, usec: 0 } ).is_ok());
         connection.set_debug(true).unwrap();
-        connection.connect().unwrap();
+
+        let timeout = connection.get_response_timeout();
+        info!("Timout {:?}", timeout);
+
+        assert!(connection.connect().is_ok());
+        debug!("Connected");
         
         ModbusSunSaverConnection {
             connection: connection,
+        }
+    }
+
+    fn read_registers_retry(&self, address: i32, num_bit: i32, dest: &mut [u16]) -> Result<usize, RetryError> {
+        match Retry::new(
+            &mut || self.connection.read_registers(address, num_bit, dest),
+            &mut |response| response.is_ok()
+            ).try(3).wait(100).execute() {
+            Ok(response) => Ok(response.unwrap() as usize),
+            Err(error) => Err(error),
         }
     }
 }
@@ -45,11 +64,12 @@ impl SunSaverConnection for ModbusSunSaverConnection {
     fn read_registers(&mut self) -> [u16; 44] {
         let mut response_register = [0u16; 44 as usize];
         let mut num_read_bytes = 0;
-        num_read_bytes += self.connection.read_registers(0x08, 22, &mut response_register[0..22]).unwrap();
-        num_read_bytes += self.connection.read_registers(0x1E, 22, &mut response_register[23..44]).unwrap();
-        if num_read_bytes != 44 {
-            panic!("Failed to read");
-        }
+        num_read_bytes += self.read_registers_retry(0x08, 22, &mut response_register[0..22]).unwrap();
+        num_read_bytes += self.read_registers_retry(0x1E, 22, &mut response_register[23..44]).unwrap();
+        //if num_read_bytes != 44 {
+        //    panic!("Failed to read all registers! Required 44 got {}", num_read_bytes);
+        //}
+        debug!("Read {} bytes", num_read_bytes);
 
         response_register
     }

@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate log;
-extern crate env_logger;
+extern crate pretty_env_logger;
 extern crate clap;
 extern crate libmodbus_rs;
 extern crate iron;
@@ -10,6 +10,7 @@ extern crate staticfile;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate ctrlc;
+extern crate retry;
 
 use std::fs;
 use std::path::Path;
@@ -73,8 +74,16 @@ impl Handler for ApiHandler {
     }
 }
 
+fn is_socket(path: &str) -> bool {
+    let metadata = fs::metadata(path).unwrap();
+    let file_type = metadata.file_type();
+    debug!("is_socket for {} had metadata {:?}", path, metadata);
+    debug!("is_socket for {} is_block_device: {}, is_char_device: {}, is_fifo: {}, is_socket: {}", path, file_type.is_block_device(), file_type.is_char_device(), file_type.is_fifo(), file_type.is_socket());
+    metadata.file_type().is_char_device()
+}
+
 fn main() {
-    assert!(env_logger::init().is_ok());
+    assert!(pretty_env_logger::init().is_ok());
 
     let matches = App::new("simple-client")
         .version(env!("CARGO_PKG_VERSION"))
@@ -90,14 +99,15 @@ fn main() {
 
     let serial_interface = matches.value_of("device").unwrap();
 
-    let metadata = fs::metadata(serial_interface).unwrap();
-    let connection: Box<SunSaverConnection> = if metadata.file_type().is_socket() {
+    let mut connection: Box<SunSaverConnection> = if is_socket(serial_interface) {
         info!("Device is a socket. Using Modbus");
         Box::new(ModbusSunSaverConnection::open(serial_interface))
     } else {
         info!("Device is not a socket. Using File");
         Box::new(FileSunSaverConnection::open(serial_interface))
     };
+
+    debug!("Response: {:?}", connection.read_response());
     
     let api_handler = ApiHandler::new(connection);
 
@@ -110,9 +120,15 @@ fn main() {
     let r = running.clone();
     ctrlc::set_handler(move || {
         r.store(false, Ordering::SeqCst);
+        info!("Cought Ctrl-C");
     }).expect("Error setting Ctrl-C handler");
-    let mut listening = Iron::new(router).http("0.0.0.0:4000").unwrap();
-    debug!("Started server");
+    
+    info!("Starting server ...");
+    let bind_address = format!("0.0.0.0:{}", env!("PORT"));
+    let mut listening = Iron::new(router).http(&bind_address).unwrap();
+    info!("Started server {}", bind_address);
+    
+    info!("Use Ctrl-C to stop");
     while running.load(Ordering::SeqCst) {}
     listening.close().unwrap();
 }
