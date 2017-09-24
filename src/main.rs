@@ -12,6 +12,8 @@ extern crate serde_json;
 extern crate ctrlc;
 extern crate retry;
 extern crate hex_slice;
+#[macro_use]
+extern crate enum_primitive;
 
 use std::fs;
 use std::path::Path;
@@ -30,7 +32,7 @@ use router::Router;
 use staticfile::Static;
 
 mod sun_saver;
-use sun_saver::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection, SunSaverResponse};
+use sun_saver::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection, SunSaverResponse, ChargeState};
 
 #[derive(Debug, Clone, Serialize)]
 struct ApiResponse {
@@ -51,6 +53,7 @@ struct ApiResponseStorage {
     battery_voltage_filtered: f32,
     battery_charge_current_filtered: f32,
     battery_charge_power_calculated: f32,
+    charge_state: ChargeState,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -84,6 +87,7 @@ impl From<SunSaverResponse> for ApiResponse {
             battery_voltage_filtered: battery_voltage_filtered,
             battery_charge_current_filtered: battery_charge_current_filtered,
             battery_charge_power_calculated: battery_voltage_filtered * battery_charge_current_filtered,
+            charge_state: response.charge_state(),
         };
         let load = ApiResponseLoad {
             load_voltage_filtered: load_voltage_filtered,

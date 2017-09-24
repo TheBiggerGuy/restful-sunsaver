@@ -8,6 +8,8 @@ use retry::{Retry, RetryError};
 
 use hex_slice::AsHex;
 
+use enum_primitive::FromPrimitive;
+
 pub trait SunSaverConnection {
     fn read_registers(&mut self) ->  [u16; 44];
 
@@ -149,6 +151,10 @@ pub struct SunSaverResponse {
     // [17][0x0010] (C). RTS Temperature.
     // Temperature as measured by the optional Remote Temperature Sensor(RTS). Reported in degrees C.
     t_rts: u16,
+    // Charge_state
+    // [18][0x0011] ( ).
+    // Reports the charge state.
+    charge_state: u16,
 }
 
 macro_rules! conv_100_2_15_scale {
@@ -163,6 +169,32 @@ macro_rules! conv_7916_2_15_scale {
     )
 }
 
+enum_from_primitive! {
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub enum ChargeState {
+    Start = 0,
+    NightCheck = 1,
+    Disconnect = 2,
+    Night = 3,
+    Fault = 4,
+    BulkCharge = 5,
+    Absorption = 6,
+    Float = 7,
+    Equalize = 8,
+}
+}
+
+impl From<u16> for ChargeState {
+    fn from(val: u16) -> ChargeState {
+        ChargeState::from_u16(val).expect("passed Value does not match an enum value!")
+    }
+}
+impl From<ChargeState> for u16 {
+    fn from(val: ChargeState) -> u16 {
+        val as u16
+    }
+}
+
 impl SunSaverResponse {
     fn from_raw_bits(raw_data: [u16; 44]) -> SunSaverResponse {
         SunSaverResponse {
@@ -175,6 +207,7 @@ impl SunSaverResponse {
             t_batt:   raw_data[6],
             t_amb:    raw_data[7],
             t_rts:    raw_data[8],
+            charge_state: raw_data[9],
         }
     }
     
@@ -213,6 +246,10 @@ impl SunSaverResponse {
     pub fn remote_temperature(&self) -> i8 {
         self.t_rts as i8
     }
+
+    pub fn charge_state(&self) -> ChargeState {
+        self.charge_state.into()
+    }
 }
 
 #[cfg(test)]
@@ -243,6 +280,8 @@ mod test {
         assert_eq!(response.t_batt, 0x0017);
         assert_eq!(response.t_amb, 0x0017);
         assert_eq!(response.t_rts, 0x0019);
+
+        assert_eq!(response.charge_state, 0x005);
     }
 
     #[test]
@@ -260,5 +299,30 @@ mod test {
         assert_eq!(response.battery_temperature(), 23);
         assert_eq!(response.ambient_temperature(), 23);
         assert_eq!(response.remote_temperature(), 25);
+
+        assert_eq!(response.charge_state(), ChargeState::BulkCharge);
+    }
+
+        #[test]
+    fn sunsaverresponse_charge_state() {
+        assert_eq!(ChargeState::from(0u16), ChargeState::Start);
+        assert_eq!(ChargeState::from(1u16), ChargeState::NightCheck);
+        assert_eq!(ChargeState::from(2u16), ChargeState::Disconnect);
+        assert_eq!(ChargeState::from(3u16), ChargeState::Night);
+        assert_eq!(ChargeState::from(4u16), ChargeState::Fault);
+        assert_eq!(ChargeState::from(5u16), ChargeState::BulkCharge);
+        assert_eq!(ChargeState::from(6u16), ChargeState::Absorption);
+        assert_eq!(ChargeState::from(7u16), ChargeState::Float);
+        assert_eq!(ChargeState::from(8u16), ChargeState::Equalize);
+
+        assert_eq!(0u16, ChargeState::Start as u16);
+        assert_eq!(1u16, ChargeState::NightCheck as u16);
+        assert_eq!(3u16, ChargeState::Night as u16);
+        assert_eq!(2u16, ChargeState::Disconnect as u16);
+        assert_eq!(4u16, ChargeState::Fault as u16);
+        assert_eq!(5u16, ChargeState::BulkCharge as u16);
+        assert_eq!(6u16, ChargeState::Absorption as u16);
+        assert_eq!(7u16, ChargeState::Float as u16);
+        assert_eq!(8u16, ChargeState::Equalize as u16);
     }
 }
