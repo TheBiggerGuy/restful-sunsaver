@@ -34,8 +34,10 @@ use iron::middleware::Handler;
 use router::Router;
 use staticfile::Static;
 
-mod sun_saver;
-use sun_saver::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection, SunSaverResponse, ChargeState, ArrayFault};
+mod sunsaver_connection;
+use sunsaver_connection::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection};
+mod sunsaver;
+use sunsaver::{SunSaverResponse, ChargeState, ArrayFault};
 
 #[derive(Debug, Clone, Serialize)]
 struct ApiResponse {
