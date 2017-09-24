@@ -10,6 +10,8 @@ use hex_slice::AsHex;
 
 use enum_primitive::FromPrimitive;
 
+use serde::ser::{Serialize, Serializer, SerializeMap};
+
 pub trait SunSaverConnection {
     fn read_registers(&mut self) ->  [u16; 44];
 
@@ -155,6 +157,10 @@ pub struct SunSaverResponse {
     // [18][0x0011] ( ).
     // Reports the charge state.
     charge_state: u16,
+    // Array_fault
+    // [19][0x0012] (bit-field). Solar input self-diagnostic faults.
+    // Reports faults identified by self diagnostics. Each bit corresponds to a specific fault.
+    array_fault: u16,
 }
 
 macro_rules! conv_100_2_15_scale {
@@ -186,12 +192,55 @@ pub enum ChargeState {
 
 impl From<u16> for ChargeState {
     fn from(val: u16) -> ChargeState {
-        ChargeState::from_u16(val).expect("passed Value does not match an enum value!")
+        ChargeState::from_u16(val).expect("Value does not match documented enum values")
     }
 }
+
 impl From<ChargeState> for u16 {
     fn from(val: ChargeState) -> u16 {
         val as u16
+    }
+}
+
+bitflags! {
+    pub struct ArrayFault: u16 {
+        const OVERCURENT                = 0b00000000_00000001;
+        const FETS_SHORTED              = 0b00000000_00000010;
+        const SOFTWARE_BUGS             = 0b00000000_00000100;
+        const BATTERY_HVD               = 0b00000000_00001000;
+        const ARRAY_HVD                 = 0b00000000_00010000;
+        const EEPROM_EDIT               = 0b00000000_00100000;
+        const RTS_SHORTED               = 0b00000000_01000000;
+        const RTS_DISCONECTED           = 0b00000000_10000000;
+        const INTERNAL_TEMP_SENSOR_FAIL = 0b00000001_00000000;
+    }
+}
+const ARRAY_FAULT_FLAGS: [ArrayFault; 9] = [
+                                ArrayFault::OVERCURENT,
+                                ArrayFault::FETS_SHORTED,
+                                ArrayFault::SOFTWARE_BUGS,
+                                ArrayFault::BATTERY_HVD,
+                                ArrayFault::ARRAY_HVD,
+                                ArrayFault::EEPROM_EDIT,
+                                ArrayFault::RTS_SHORTED,
+                                ArrayFault::RTS_DISCONECTED,
+                                ArrayFault::INTERNAL_TEMP_SENSOR_FAIL,
+                              ];
+
+impl From<u16> for ArrayFault {
+    fn from(val: u16) -> ArrayFault {
+        ArrayFault::from_bits(val).expect("Value does not match documented bit fields")
+    }
+}
+
+impl Serialize for ArrayFault {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        let mut map = serializer.serialize_map(Some(ARRAY_FAULT_FLAGS.len()))?;
+        for flag in ARRAY_FAULT_FLAGS.iter() {
+            let is_set = self.contains(*flag);
+            map.serialize_entry(&format!("{:?}", flag), &is_set)?;
+        }
+        map.end()
     }
 }
 
@@ -208,6 +257,7 @@ impl SunSaverResponse {
             t_amb:    raw_data[7],
             t_rts:    raw_data[8],
             charge_state: raw_data[9],
+            array_fault: raw_data[10],
         }
     }
     
@@ -250,10 +300,15 @@ impl SunSaverResponse {
     pub fn charge_state(&self) -> ChargeState {
         self.charge_state.into()
     }
+
+    pub fn array_fault(&self) -> ArrayFault {
+        self.array_fault.into()
+    }
 }
 
 #[cfg(test)]
 mod test {
+    use serde_json;
     use super::*;
 
     const DEFAULT_TEST_RAW_BITS: [u16; 44] = [
@@ -281,7 +336,8 @@ mod test {
         assert_eq!(response.t_amb, 0x0017);
         assert_eq!(response.t_rts, 0x0019);
 
-        assert_eq!(response.charge_state, 0x005);
+        assert_eq!(response.charge_state, 0x0005);
+        assert_eq!(response.array_fault, 0x0000);
     }
 
     #[test]
@@ -301,9 +357,10 @@ mod test {
         assert_eq!(response.remote_temperature(), 25);
 
         assert_eq!(response.charge_state(), ChargeState::BulkCharge);
+        assert!(response.array_fault().is_empty());
     }
 
-        #[test]
+    #[test]
     fn sunsaverresponse_charge_state() {
         assert_eq!(ChargeState::from(0u16), ChargeState::Start);
         assert_eq!(ChargeState::from(1u16), ChargeState::NightCheck);
@@ -324,5 +381,32 @@ mod test {
         assert_eq!(6u16, ChargeState::Absorption as u16);
         assert_eq!(7u16, ChargeState::Float as u16);
         assert_eq!(8u16, ChargeState::Equalize as u16);
+    }
+
+    #[test]
+    fn sunsaverresponse_array_fault() {
+        assert_eq!(ArrayFault::from(0b0000000000000000), ArrayFault::empty());
+        assert_eq!(ArrayFault::from(0b0000000000000001), ArrayFault::OVERCURENT);
+        assert_eq!(ArrayFault::from(0b0000000000000010), ArrayFault::FETS_SHORTED);
+        assert_eq!(ArrayFault::from(0b0000000000000011), ArrayFault::OVERCURENT | ArrayFault::FETS_SHORTED);
+    }
+
+    #[test]
+    fn sunsaverresponse_array_fault_serialize() {
+        let native = ArrayFault::empty();
+        let json = serde_json::to_string(&native).unwrap();
+        assert_eq!(json, "{\"OVERCURENT\":false,\"FETS_SHORTED\":false,\"SOFTWARE_BUGS\":false,\"BATTERY_HVD\":false,\"ARRAY_HVD\":false,\"EEPROM_EDIT\":false,\"RTS_SHORTED\":false,\"RTS_DISCONECTED\":false,\"INTERNAL_TEMP_SENSOR_FAIL\":false}");
+
+        let native = ArrayFault::OVERCURENT;
+        let json = serde_json::to_string(&native).unwrap();
+        assert!(json.starts_with("{\"OVERCURENT\":true,\"FETS_SHORTED\":false,\"SOFTWARE_BUGS\":false,"), json);
+
+        let native = ArrayFault::FETS_SHORTED;
+        let json = serde_json::to_string(&native).unwrap();
+        assert!(json.starts_with("{\"OVERCURENT\":false,\"FETS_SHORTED\":true,\"SOFTWARE_BUGS\":false,"), json);
+
+        let native = ArrayFault::OVERCURENT | ArrayFault::FETS_SHORTED;
+        let json = serde_json::to_string(&native).unwrap();
+        assert!(json.starts_with("{\"OVERCURENT\":true,\"FETS_SHORTED\":true,\"SOFTWARE_BUGS\":false,"), json);
     }
 }

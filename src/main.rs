@@ -6,6 +6,7 @@ extern crate libmodbus_rs;
 extern crate iron;
 extern crate router;
 extern crate staticfile;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
@@ -14,6 +15,8 @@ extern crate retry;
 extern crate hex_slice;
 #[macro_use]
 extern crate enum_primitive;
+#[macro_use]
+extern crate bitflags;
 
 use std::fs;
 use std::path::Path;
@@ -32,7 +35,7 @@ use router::Router;
 use staticfile::Static;
 
 mod sun_saver;
-use sun_saver::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection, SunSaverResponse, ChargeState};
+use sun_saver::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection, SunSaverResponse, ChargeState, ArrayFault};
 
 #[derive(Debug, Clone, Serialize)]
 struct ApiResponse {
@@ -40,6 +43,7 @@ struct ApiResponse {
     storage: ApiResponseStorage,
     load: ApiResponseLoad,
     temperature: ApiResponseTemperature,
+    faults: ApiResponseFaults,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -71,6 +75,11 @@ struct ApiResponseTemperature {
     remote_temperature: i8,
 }
 
+#[derive(Debug, Clone, Serialize)]
+struct ApiResponseFaults {
+    array_fault: ArrayFault,
+}
+
 impl From<SunSaverResponse> for ApiResponse {
     fn from(response: SunSaverResponse) -> Self {
         let battery_voltage_filtered = response.battery_voltage_filtered();
@@ -100,11 +109,15 @@ impl From<SunSaverResponse> for ApiResponse {
             ambient_temperature: response.ambient_temperature(),
             remote_temperature: response.remote_temperature(),
         };
+        let faults = ApiResponseFaults {
+            array_fault: response.array_fault(),
+        };
         ApiResponse {
             generation: generation,
             storage: storage,
             load: load,
             temperature: temperature,
+            faults: faults,
         }
     }
 }
