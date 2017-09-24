@@ -13,6 +13,8 @@ use ::sunsaver::*;
 pub trait SunSaverConnection {
     fn read_registers(&mut self) ->  [u16; 44];
 
+    fn read_logged_data(&mut self) -> [u16; 32 * 16];
+
     fn read_response(&mut self) -> SunSaverResponse {
         SunSaverResponse::from_raw_bits(self.read_registers())
     }
@@ -78,6 +80,23 @@ impl SunSaverConnection for ModbusSunSaverConnection {
 
         response_register
     }
+
+    fn read_logged_data(&mut self) -> [u16; 32 * 16] {
+        let mut logged_data = [0u16; (32 * 16) as usize];
+
+        for i in 0..32 {
+            let offset: usize = i * 16;
+            self.read_registers_retry((0x8000 + offset) as i32, 16, &mut logged_data[offset..(offset + 16)]).unwrap();
+        }
+
+        debug!("logged_data_start");
+        for i in (0 as usize)..32 {
+            debug!("{:#x}", logged_data[i..(i+16)].as_hex());
+        }
+        debug!("logged_data_end");
+
+        logged_data
+    }
 }
 
 #[derive(Debug)]
@@ -109,5 +128,9 @@ impl SunSaverConnection for FileSunSaverConnection {
         let mut response_register_u16 = [0u16; 44 as usize];
         response_register_u16.clone_from_slice(&response_register_vec_u16);
         response_register_u16
+    }
+
+    fn read_logged_data(&mut self) -> [u16; 32 * 16] {
+        unimplemented!();
     }
 }

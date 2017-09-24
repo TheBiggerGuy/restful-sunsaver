@@ -141,7 +141,9 @@ unsafe impl Send for ApiHandler {}
 unsafe impl Sync for ApiHandler {}
 
 impl Handler for ApiHandler {
-    fn handle(&self, _req: &mut Request) -> IronResult<Response> {
+    fn handle(&self, req: &mut Request) -> IronResult<Response> {
+        debug!("{:?}", req.url);
+
         let connection = self.connection.clone();
         let mut unlocked_connection = connection.lock().unwrap();
         let a = ApiResponse::from(unlocked_connection.read_response());
@@ -189,8 +191,7 @@ fn main() {
 
     let mut router = Router::new();
     router.get("/", Static::new(Path::new("web")), "index");
-    router.get("/api", api_handler, "api");
-
+    router.get("/api/v1/", api_handler, "api_v1");
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
