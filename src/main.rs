@@ -144,11 +144,24 @@ impl Handler for ApiHandler {
     fn handle(&self, req: &mut Request) -> IronResult<Response> {
         debug!("{:?}", req.url);
 
-        let connection = self.connection.clone();
-        let mut unlocked_connection = connection.lock().unwrap();
-        let a = ApiResponse::from(unlocked_connection.read_response());
-        let b = serde_json::to_string_pretty(&a).unwrap();
-        Ok(Response::with((status::Ok, b)))
+        let path = req.url.path();
+        let last_path = path.clone().pop().unwrap();
+        match last_path {
+            "status" => {
+                let connection = self.connection.clone();
+                let mut unlocked_connection = connection.lock().unwrap();
+                let a = ApiResponse::from(unlocked_connection.read_response());
+                let b = serde_json::to_string_pretty(&a).unwrap();
+                return Ok(Response::with((status::Ok, b)))
+            },
+            "logger" => {
+                let connection = self.connection.clone();
+                let mut unlocked_connection = connection.lock().unwrap();
+                unlocked_connection.read_logged_data();
+                return Ok(Response::with((status::Ok)))
+            },
+            _ => panic!("Unknown action: {:?}", path),
+        }
     }
 }
 
@@ -191,7 +204,8 @@ fn main() {
 
     let mut router = Router::new();
     router.get("/", Static::new(Path::new("web")), "index");
-    router.get("/api/v1/", api_handler, "api_v1");
+    router.get("/api/v1/status", api_handler.clone(), "api_v1_status");
+    router.get("/api/v1/logger", api_handler.clone(), "api_v2_logger");
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
