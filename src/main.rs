@@ -42,32 +42,44 @@ struct ApiResponse {
 #[derive(Debug, Clone, Serialize)]
 struct ApiResponseGeneration {
     solar_input_voltage_filtered: f32,
+    calculated_generation_power: f32,
 }
 
 #[derive(Debug, Clone, Serialize)]
 struct ApiResponseStorage {
     battery_voltage_filtered: f32,
     battery_charge_current_filtered: f32,
+    battery_charge_power_calculated: f32,
 }
 
 #[derive(Debug, Clone, Serialize)]
 struct ApiResponseLoad {
     load_voltage_filtered: f32,
     load_current_filtered: f32,
+    load_power_calculated: f32,
 }
 
 impl From<SunSaverResponse> for ApiResponse {
     fn from(response: SunSaverResponse) -> Self {
+        let battery_voltage_filtered = response.battery_voltage_filtered();
+        let battery_charge_current_filtered = response.battery_charge_current_filtered();
+        let load_voltage_filtered = response.load_voltage_filtered();
+        let load_current_filtered = response.load_current_filtered();
+        let solar_input_voltage_filtered = response.solar_input_voltage_filtered();
+        
         let generation = ApiResponseGeneration {
-            solar_input_voltage_filtered: response.solar_input_voltage_filtered(),
+            solar_input_voltage_filtered: solar_input_voltage_filtered,
+            calculated_generation_power: (load_current_filtered + battery_charge_current_filtered) * solar_input_voltage_filtered,
         };
         let storage = ApiResponseStorage {
-            battery_voltage_filtered: response.battery_voltage_filtered(),
-            battery_charge_current_filtered: response.battery_charge_current_filtered(),
+            battery_voltage_filtered: battery_voltage_filtered,
+            battery_charge_current_filtered: battery_charge_current_filtered,
+            battery_charge_power_calculated: battery_voltage_filtered * battery_charge_current_filtered,
         };
         let load = ApiResponseLoad {
-            load_voltage_filtered: response.load_voltage_filtered(),
-            load_current_filtered: response.load_current_filtered(),
+            load_voltage_filtered: load_voltage_filtered,
+            load_current_filtered: load_current_filtered,
+            load_power_calculated: load_voltage_filtered * load_current_filtered,
         };
         ApiResponse {
             generation: generation,
