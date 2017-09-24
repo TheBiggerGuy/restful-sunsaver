@@ -6,6 +6,8 @@ use libmodbus_rs::{Modbus, ModbusClient, ModbusRTU, SerialMode, Timeout};
 
 use retry::{Retry, RetryError};
 
+use hex_slice::AsHex;
+
 pub trait SunSaverConnection {
     fn read_registers(&mut self) ->  [u16; 44];
 
@@ -36,7 +38,7 @@ impl ModbusSunSaverConnection {
         assert!(connection.set_slave(0x01).is_ok());
         assert!(connection.rtu_set_serial_mode(SerialMode::MODBUS_RTU_RS232).is_ok());
         assert!(connection.set_response_timeout( Timeout { sec: 1, usec: 0 } ).is_ok());
-        connection.set_debug(true).unwrap();
+        connection.set_debug(false).unwrap();
 
         let timeout = connection.get_response_timeout();
         info!("Timout {:?}", timeout);
@@ -70,6 +72,7 @@ impl SunSaverConnection for ModbusSunSaverConnection {
         //    panic!("Failed to read all registers! Required 44 got {}", num_read_bytes);
         //}
         debug!("Read {} bytes", num_read_bytes);
+        debug!("read reg 0x08 + 44: {:#x}", response_register.as_hex());
 
         response_register
     }
@@ -148,5 +151,25 @@ impl SunSaverResponse {
 
     pub fn load_voltage_filtered(&self) -> f32 {
         conv_100_2_15_scale!(self.adc_vl_f)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn sunsaverresponse_from_raw_bits() {
+        let raw_bits = [
+            0x1079, 0x11c9, 0x1074, 0x0035, 0x009a, 0x0017, 0x0017, 0x0017,
+            0x0019, 0x0005, 0x0000, 0x1079, 0x1200, 0x0000, 0x1712, 0x0000,
+            0x1712, 0x004e, 0x0001, 0x0000, 0x0e13, 0x0000, 0x0000, 0x0f2a,
+            0x0000, 0x0f2a, 0x0000, 0x26b6, 0x0000, 0x0001, 0x000b, 0x0006,
+            0x006b, 0x10b1, 0x0123, 0x1640, 0x1009, 0x11f1, 0x004e, 0x002b,
+            0x0000, 0x0000, 0x0000, 0x0001
+        ];
+        let response = SunSaverResponse::from_raw_bits(raw_bits);
+
+        assert_eq!(response.adc_vb_f, 0x1079);
     }
 }

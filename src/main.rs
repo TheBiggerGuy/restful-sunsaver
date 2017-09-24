@@ -11,6 +11,7 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate ctrlc;
 extern crate retry;
+extern crate hex_slice;
 
 use std::fs;
 use std::path::Path;
