@@ -125,7 +125,7 @@ fn main() {
     }).expect("Error setting Ctrl-C handler");
     
     info!("Starting server ...");
-    let bind_address = format!("0.0.0.0:{}", env!("PORT"));
+    let bind_address = format!("0.0.0.0:{}", option_env!("PORT").unwrap_or("8080"));
     let mut listening = Iron::new(router).http(&bind_address).unwrap();
     info!("Started server {}", bind_address);
     
