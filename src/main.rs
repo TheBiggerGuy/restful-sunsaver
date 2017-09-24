@@ -37,6 +37,7 @@ struct ApiResponse {
     generation: ApiResponseGeneration,
     storage: ApiResponseStorage,
     load: ApiResponseLoad,
+    temperature: ApiResponseTemperature,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -57,6 +58,14 @@ struct ApiResponseLoad {
     load_voltage_filtered: f32,
     load_current_filtered: f32,
     load_power_calculated: f32,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ApiResponseTemperature {
+    heatsink_temperature: i8,
+    battery_temperature: i8,
+    ambient_temperature: i8,
+    remote_temperature: i8,
 }
 
 impl From<SunSaverResponse> for ApiResponse {
@@ -81,10 +90,17 @@ impl From<SunSaverResponse> for ApiResponse {
             load_current_filtered: load_current_filtered,
             load_power_calculated: load_voltage_filtered * load_current_filtered,
         };
+        let temperature = ApiResponseTemperature {
+            heatsink_temperature: response.heatsink_temperature(),
+            battery_temperature: response.battery_temperature(),
+            ambient_temperature: response.ambient_temperature(),
+            remote_temperature: response.remote_temperature(),
+        };
         ApiResponse {
             generation: generation,
             storage: storage,
             load: load,
+            temperature: temperature,
         }
     }
 }

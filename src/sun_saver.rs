@@ -132,6 +132,23 @@ pub struct SunSaverResponse {
     // [13][0x000C] (A). load current, filtered.
     // Load current to the systems loads as measured by on-board shunt.
     adc_il_f: u16,
+    // T_hs
+    // [14][0x000D] (C). Heatsink Temperature.
+    // Sunsaver MPPT Heatsink temperature. Reported in degrees C.
+    t_hs: u16,
+    // T_batt
+    // [15][0x000E] (C). Battery Temperature.
+    // Battery temperature as measured by the ambient temperature sensor or the optional RTS (if connected).
+    // Reported in degrees C.
+    t_batt: u16,
+    // T_amb
+    // [16][0x000F] (C). Ambient Temperature.
+    // Ambient temperature as measured by the ambient temperature sensor. Reported in degrees C.
+    t_amb: u16,
+    // T_rts
+    // [17][0x0010] (C). RTS Temperature.
+    // Temperature as measured by the optional Remote Temperature Sensor(RTS). Reported in degrees C.
+    t_rts: u16,
 }
 
 macro_rules! conv_100_2_15_scale {
@@ -154,6 +171,10 @@ impl SunSaverResponse {
             adc_vl_f: raw_data[2],
             adc_ic_f: raw_data[3],
             adc_il_f: raw_data[4],
+            t_hs:     raw_data[5],
+            t_batt:   raw_data[6],
+            t_amb:    raw_data[7],
+            t_rts:    raw_data[8],
         }
     }
     
@@ -175,6 +196,22 @@ impl SunSaverResponse {
 
     pub fn load_current_filtered(&self) -> f32 {
         conv_7916_2_15_scale!(self.adc_il_f)
+    }
+
+    pub fn heatsink_temperature(&self) -> i8 {
+        self.t_hs as i8
+    }
+
+    pub fn battery_temperature(&self) -> i8 {
+        self.t_batt as i8
+    }
+
+    pub fn ambient_temperature(&self) -> i8 {
+        self.t_amb as i8
+    }
+
+    pub fn remote_temperature(&self) -> i8 {
+        self.t_rts as i8
     }
 }
 
@@ -198,8 +235,14 @@ mod test {
         assert_eq!(response.adc_vb_f, 0x1079);
         assert_eq!(response.adc_va_f, 0x11c9);
         assert_eq!(response.adc_vl_f, 0x1074);
+
         assert_eq!(response.adc_ic_f, 0x0035);
         assert_eq!(response.adc_il_f, 0x009a);
+
+        assert_eq!(response.t_hs, 0x0017);
+        assert_eq!(response.t_batt, 0x0017);
+        assert_eq!(response.t_amb, 0x0017);
+        assert_eq!(response.t_rts, 0x0019);
     }
 
     #[test]
@@ -208,8 +251,14 @@ mod test {
 
         assert_eq!(response.battery_voltage_filtered(), 12.869263);
         assert_eq!(response.solar_input_voltage_filtered(), 13.894653);
+
         assert_eq!(response.load_voltage_filtered(), 12.854004);
         assert_eq!(response.battery_charge_current_filtered(), 0.12803589);
         assert_eq!(response.load_current_filtered(), 0.37202883);
+
+        assert_eq!(response.heatsink_temperature(), 23);
+        assert_eq!(response.battery_temperature(), 23);
+        assert_eq!(response.ambient_temperature(), 23);
+        assert_eq!(response.remote_temperature(), 25);
     }
 }
