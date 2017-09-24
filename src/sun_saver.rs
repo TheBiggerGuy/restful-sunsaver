@@ -124,11 +124,25 @@ pub struct SunSaverResponse {
     // [11][0x000A] (V). load voltage.
     // Vl is the terminal voltage of the load output connection.
     adc_vl_f: u16,
+    // Adc_ic_f
+    // [12][0x000B] (A). battery charge current, filtered.
+    // Charging current to the battery as measured by on-board shunt.
+    adc_ic_f: u16,
+    // Adc_il_f
+    // [13][0x000C] (A). load current, filtered.
+    // Load current to the systems loads as measured by on-board shunt.
+    adc_il_f: u16,
 }
 
 macro_rules! conv_100_2_15_scale {
     ($expression:expr) => (
         (($expression as f32) * 100.0) / 32768.0
+    )
+}
+
+macro_rules! conv_7916_2_15_scale {
+    ($expression:expr) => (
+        (($expression as f32) * 79.16) / 32768.0
     )
 }
 
@@ -138,6 +152,8 @@ impl SunSaverResponse {
             adc_vb_f: raw_data[0],
             adc_va_f: raw_data[1],
             adc_vl_f: raw_data[2],
+            adc_ic_f: raw_data[3],
+            adc_il_f: raw_data[4],
         }
     }
     
@@ -151,6 +167,14 @@ impl SunSaverResponse {
 
     pub fn load_voltage_filtered(&self) -> f32 {
         conv_100_2_15_scale!(self.adc_vl_f)
+    }
+
+    pub fn battery_charge_current_filtered(&self) -> f32 {
+        conv_7916_2_15_scale!(self.adc_ic_f)
+    }
+
+    pub fn load_current_filtered(&self) -> f32 {
+        conv_7916_2_15_scale!(self.adc_il_f)
     }
 }
 
@@ -174,6 +198,8 @@ mod test {
         assert_eq!(response.adc_vb_f, 0x1079);
         assert_eq!(response.adc_va_f, 0x11c9);
         assert_eq!(response.adc_vl_f, 0x1074);
+        assert_eq!(response.adc_ic_f, 0x0035);
+        assert_eq!(response.adc_il_f, 0x009a);
     }
 
     #[test]
@@ -183,5 +209,7 @@ mod test {
         assert_eq!(response.battery_voltage_filtered(), 12.869263);
         assert_eq!(response.solar_input_voltage_filtered(), 13.894653);
         assert_eq!(response.load_voltage_filtered(), 12.854004);
+        assert_eq!(response.battery_charge_current_filtered(), 0.12803589);
+        assert_eq!(response.load_current_filtered(), 0.37202883);
     }
 }

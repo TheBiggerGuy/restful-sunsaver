@@ -34,17 +34,45 @@ use sun_saver::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnec
 
 #[derive(Debug, Clone, Serialize)]
 struct ApiResponse {
-    battery_voltage_filtered: f32,
+    generation: ApiResponseGeneration,
+    storage: ApiResponseStorage,
+    load: ApiResponseLoad,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ApiResponseGeneration {
     solar_input_voltage_filtered: f32,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ApiResponseStorage {
+    battery_voltage_filtered: f32,
+    battery_charge_current_filtered: f32,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ApiResponseLoad {
     load_voltage_filtered: f32,
+    load_current_filtered: f32,
 }
 
 impl From<SunSaverResponse> for ApiResponse {
     fn from(response: SunSaverResponse) -> Self {
-        ApiResponse {
-            battery_voltage_filtered: response.battery_voltage_filtered(),
+        let generation = ApiResponseGeneration {
             solar_input_voltage_filtered: response.solar_input_voltage_filtered(),
+        };
+        let storage = ApiResponseStorage {
+            battery_voltage_filtered: response.battery_voltage_filtered(),
+            battery_charge_current_filtered: response.battery_charge_current_filtered(),
+        };
+        let load = ApiResponseLoad {
             load_voltage_filtered: response.load_voltage_filtered(),
+            load_current_filtered: response.load_current_filtered(),
+        };
+        ApiResponse {
+            generation: generation,
+            storage: storage,
+            load: load,
         }
     }
 }
