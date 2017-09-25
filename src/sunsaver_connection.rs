@@ -84,10 +84,7 @@ impl SunSaverConnection for ModbusSunSaverConnection {
     fn read_logged_data(&mut self) -> [u16; 32 * 16] {
         let mut logged_data = [0u16; (32 * 16) as usize];
 
-        for i in 0..32 {
-            let offset: usize = i * 16;
-            self.read_registers_retry((0x8000 + offset) as i32, 16, &mut logged_data[offset..(offset + 16)]).unwrap();
-        }
+        self.read_registers_retry(0x8000, 32 * 16, &mut logged_data).unwrap();
 
         debug!("logged_data_start");
         for i in (0 as usize)..32 {
