@@ -136,6 +136,8 @@ struct ApiLoggedDayResponse {
     hourmeter: u32,
     battery_voltage_min: f32,
     battery_voltage_max: f32,
+    battery_charge_daily: f32,
+    load_charge_daily: f32,
 }
 
 impl From<LoggedResponse> for ApiLoggedResponse {
@@ -153,6 +155,8 @@ impl From<LoggedResponseDay> for ApiLoggedDayResponse {
             hourmeter: response.hourmeter,
             battery_voltage_min: response.battery_voltage_min(),
             battery_voltage_max: response.battery_voltage_max(),
+            battery_charge_daily: response.battery_charge_daily(),
+            load_charge_daily: response.load_charge_daily(),
         }
     }
 }
@@ -191,7 +195,7 @@ impl Handler for ApiHandler {
                 let b = serde_json::to_string_pretty(&a).unwrap();
                 response = response.set((status::Ok, b));
             },
-            "logger" => {
+            "logged" => {
                 let connection = self.connection.clone();
                 let mut unlocked_connection = connection.lock().unwrap();
                 let a = ApiLoggedResponse::from(unlocked_connection.read_logged());
@@ -241,11 +245,13 @@ fn main() {
     };
 
     let api_handler = ApiHandler::new(connection);
+    let static_handler = Static::new(Path::new("web"));
 
     let mut router = Router::new();
-    router.get("/", Static::new(Path::new("web")), "index");
+    router.get("/", static_handler.clone(), "index");
+    router.get("/:filepath(*)", static_handler.clone(), "static");
     router.get("/api/v1/status", api_handler.clone(), "api_v1_status");
-    router.get("/api/v1/logger", api_handler.clone(), "api_v2_logger");
+    router.get("/api/v1/logged", api_handler.clone(), "api_v2_logger");
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();

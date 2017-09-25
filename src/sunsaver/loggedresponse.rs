@@ -30,6 +30,8 @@ pub struct LoggedResponseDay {
     pub alarm_daily: u32, // u24
     vb_min_daily: u16,
     vb_max_daily: u16,
+    ahc_daily: u16,
+    ahl_daily: u16,
 }
 
 impl LoggedResponseDay {
@@ -41,6 +43,8 @@ impl LoggedResponseDay {
             alarm_daily: alarm_daily,
             vb_min_daily: raw_data[3],
             vb_max_daily: raw_data[4],
+            ahc_daily: raw_data[5],
+            ahl_daily: raw_data[5],
         }
     }
 
@@ -50,6 +54,14 @@ impl LoggedResponseDay {
 
     pub fn battery_voltage_max(&self) -> f32 {
         conv_100_2_15_scale!(self.vb_max_daily)
+    }
+
+    pub fn battery_charge_daily(&self) -> f32 {
+        (self.ahc_daily as f32) * 0.1
+    }
+
+    pub fn load_charge_daily(&self) -> f32 {
+        (self.ahl_daily as f32) * 0.1
     }
 }
 

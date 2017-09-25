@@ -1,0 +1,159 @@
+{
+  "days": [
+    {
+      "hourmeter": 66084,
+      "battery_voltage_min": 12.55188,
+      "battery_voltage_max": 14.047241
+    },
+    {
+      "hourmeter": 67877,
+      "battery_voltage_min": 11.981201,
+      "battery_voltage_max": 13.272095
+    },
+    {
+      "hourmeter": 69926,
+      "battery_voltage_min": 12.823486,
+      "battery_voltage_max": 14.334106
+    },
+    {
+      "hourmeter": 72228,
+      "battery_voltage_min": 12.524414,
+      "battery_voltage_max": 14.080811
+    },
+    {
+      "hourmeter": 74021,
+      "battery_voltage_min": 12.246704,
+      "battery_voltage_max": 12.979126
+    },
+    {
+      "hourmeter": 75814,
+      "battery_voltage_min": 12.667847,
+      "battery_voltage_max": 14.279175
+    },
+    {
+      "hourmeter": 78372,
+      "battery_voltage_min": 12.591553,
+      "battery_voltage_max": 14.031982
+    },
+    {
+      "hourmeter": 80165,
+      "battery_voltage_min": 12.139893,
+      "battery_voltage_max": 13.513184
+    },
+    {
+      "hourmeter": 82214,
+      "battery_voltage_min": 12.176514,
+      "battery_voltage_max": 14.389038
+    },
+    {
+      "hourmeter": 84516,
+      "battery_voltage_min": 12.55188,
+      "battery_voltage_max": 14.160156
+    },
+    {
+      "hourmeter": 86309,
+      "battery_voltage_min": 12.283325,
+      "battery_voltage_max": 13.650513
+    },
+    {
+      "hourmeter": 88102,
+      "battery_voltage_min": 12.5,
+      "battery_voltage_max": 13.171387
+    },
+    {
+      "hourmeter": 90660,
+      "battery_voltage_min": 12.750244,
+      "battery_voltage_max": 14.398193
+    },
+    {
+      "hourmeter": 92453,
+      "battery_voltage_min": 12.402344,
+      "battery_voltage_max": 13.873291
+    },
+    {
+      "hourmeter": 94502,
+      "battery_voltage_min": 12.591553,
+      "battery_voltage_max": 13.745117
+    },
+    {
+      "hourmeter": 96804,
+      "battery_voltage_min": 12.127686,
+      "battery_voltage_max": 14.413452
+    },
+    {
+      "hourmeter": 98597,
+      "battery_voltage_min": 12.368774,
+      "battery_voltage_max": 14.120483
+    },
+    {
+      "hourmeter": 100390,
+      "battery_voltage_min": 12.747192,
+      "battery_voltage_max": 14.440918
+    },
+    {
+      "hourmeter": 102692,
+      "battery_voltage_min": 11.413574,
+      "battery_voltage_max": 12.750244
+    },
+    {
+      "hourmeter": 104741,
+      "battery_voltage_min": 12.481689,
+      "battery_voltage_max": 14.105225
+    },
+    {
+      "hourmeter": 106534,
+      "battery_voltage_min": 12.542725,
+      "battery_voltage_max": 14.129639
+    },
+    {
+      "hourmeter": 108836,
+      "battery_voltage_min": 11.358643,
+      "battery_voltage_max": 12.60376
+    },
+    {
+      "hourmeter": 110885,
+      "battery_voltage_min": 12.518311,
+      "battery_voltage_max": 13.05542
+    },
+    {
+      "hourmeter": 112678,
+      "battery_voltage_min": 12.527466,
+      "battery_voltage_max": 14.016724
+    },
+    {
+      "hourmeter": 114980,
+      "battery_voltage_min": 11.395264,
+      "battery_voltage_max": 12.609863
+    },
+    {
+      "hourmeter": 117029,
+      "battery_voltage_min": 12.10022,
+      "battery_voltage_max": 14.123535
+    },
+    {
+      "hourmeter": 121124,
+      "battery_voltage_min": 11.987305,
+      "battery_voltage_max": 12.445068
+    },
+    {
+      "hourmeter": 123173,
+      "battery_voltage_min": 12.371826,
+      "battery_voltage_max": 14.160156
+    },
+    {
+      "hourmeter": 125219,
+      "battery_voltage_min": 12.561035,
+      "battery_voltage_max": 14.074707
+    },
+    {
+      "hourmeter": 127268,
+      "battery_voltage_min": 11.78894,
+      "battery_voltage_max": 13.12561
+    },
+    {
+      "hourmeter": 129317,
+      "battery_voltage_min": 12.664795,
+      "battery_voltage_max": 14.3463135
+    }
+  ]
+}
