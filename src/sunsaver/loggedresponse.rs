@@ -32,6 +32,7 @@ pub struct LoggedResponseDay {
     vb_max_daily: u16,
     ahc_daily: u16,
     ahl_daily: u16,
+    va_max_daily: u16,
 }
 
 impl LoggedResponseDay {
@@ -45,6 +46,7 @@ impl LoggedResponseDay {
             vb_max_daily: raw_data[4],
             ahc_daily: raw_data[5],
             ahl_daily: raw_data[6],
+            va_max_daily: raw_data[9],
         }
     }
 
@@ -62,6 +64,10 @@ impl LoggedResponseDay {
 
     pub fn load_charge_daily(&self) -> f32 {
         (self.ahl_daily as f32) * 0.1
+    }
+
+    pub fn array_voltage_max(&self) -> f32 {
+        conv_100_2_15_scale!(self.va_max_daily)
     }
 }
 
@@ -152,5 +158,8 @@ mod test {
 
         assert_eq!(day.battery_voltage_min(), 12.55188);
         assert_eq!(day.battery_voltage_max(), 14.047241);
+        assert_eq!(day.battery_charge_daily(), 7.1);
+        assert_eq!(day.load_charge_daily(), 2.7);
+        assert_eq!(day.array_voltage_max(), 20.715332);
     }
 }

@@ -138,6 +138,7 @@ struct ApiLoggedDayResponse {
     battery_voltage_max: f32,
     battery_charge_daily: f32,
     load_charge_daily: f32,
+    array_voltage_max: f32,
 }
 
 impl From<LoggedResponse> for ApiLoggedResponse {
@@ -157,6 +158,7 @@ impl From<LoggedResponseDay> for ApiLoggedDayResponse {
             battery_voltage_max: response.battery_voltage_max(),
             battery_charge_daily: response.battery_charge_daily(),
             load_charge_daily: response.load_charge_daily(),
+            array_voltage_max: response.array_voltage_max(),
         }
     }
 }
