@@ -5,217 +5,217 @@
       "battery_voltage_min": 12.55188,
       "battery_voltage_max": 14.047241,
       "battery_charge_daily": 7.1,
-      "load_charge_daily": 7.1
+      "load_charge_daily": 2.7
     },
     {
       "hourmeter": 67877,
       "battery_voltage_min": 11.981201,
       "battery_voltage_max": 13.272095,
       "battery_charge_daily": 21.7,
-      "load_charge_daily": 21.7
+      "load_charge_daily": 10.3
     },
     {
       "hourmeter": 69926,
       "battery_voltage_min": 12.823486,
       "battery_voltage_max": 14.334106,
       "battery_charge_daily": 8.2,
-      "load_charge_daily": 8.2
+      "load_charge_daily": 0.2
     },
     {
       "hourmeter": 72228,
       "battery_voltage_min": 12.524414,
       "battery_voltage_max": 14.080811,
       "battery_charge_daily": 9.1,
-      "load_charge_daily": 9.1
+      "load_charge_daily": 2.6000001
     },
     {
       "hourmeter": 74021,
       "battery_voltage_min": 12.246704,
       "battery_voltage_max": 12.979126,
       "battery_charge_daily": 5.8,
-      "load_charge_daily": 5.8
+      "load_charge_daily": 9.7
     },
     {
       "hourmeter": 75814,
       "battery_voltage_min": 12.667847,
       "battery_voltage_max": 14.279175,
       "battery_charge_daily": 7.3,
-      "load_charge_daily": 7.3
+      "load_charge_daily": 0.5
     },
     {
       "hourmeter": 78372,
       "battery_voltage_min": 12.591553,
       "battery_voltage_max": 14.031982,
       "battery_charge_daily": 8.1,
-      "load_charge_daily": 8.1
+      "load_charge_daily": 1.8000001
     },
     {
       "hourmeter": 80165,
       "battery_voltage_min": 12.139893,
       "battery_voltage_max": 13.513184,
       "battery_charge_daily": 17.6,
-      "load_charge_daily": 17.6
+      "load_charge_daily": 10.2
     },
     {
       "hourmeter": 82214,
       "battery_voltage_min": 12.176514,
       "battery_voltage_max": 14.389038,
       "battery_charge_daily": 14.400001,
-      "load_charge_daily": 14.400001
+      "load_charge_daily": 15.900001
     },
     {
       "hourmeter": 84516,
       "battery_voltage_min": 12.55188,
       "battery_voltage_max": 14.160156,
       "battery_charge_daily": 7.7000003,
-      "load_charge_daily": 7.7000003
+      "load_charge_daily": 1.9
     },
     {
       "hourmeter": 86309,
       "battery_voltage_min": 12.283325,
       "battery_voltage_max": 13.650513,
       "battery_charge_daily": 20.1,
-      "load_charge_daily": 20.1
+      "load_charge_daily": 10.0
     },
     {
       "hourmeter": 88102,
       "battery_voltage_min": 12.5,
       "battery_voltage_max": 13.171387,
       "battery_charge_daily": 4.3,
-      "load_charge_daily": 4.3
+      "load_charge_daily": 2.4
     },
     {
       "hourmeter": 90660,
       "battery_voltage_min": 12.750244,
       "battery_voltage_max": 14.398193,
       "battery_charge_daily": 2.1000001,
-      "load_charge_daily": 2.1000001
+      "load_charge_daily": 0.0
     },
     {
       "hourmeter": 92453,
       "battery_voltage_min": 12.402344,
       "battery_voltage_max": 13.873291,
       "battery_charge_daily": 12.3,
-      "load_charge_daily": 12.3
+      "load_charge_daily": 9.8
     },
     {
       "hourmeter": 94502,
       "battery_voltage_min": 12.591553,
       "battery_voltage_max": 13.745117,
       "battery_charge_daily": 8.3,
-      "load_charge_daily": 8.3
+      "load_charge_daily": 0.0
     },
     {
       "hourmeter": 96804,
       "battery_voltage_min": 12.127686,
       "battery_voltage_max": 14.413452,
       "battery_charge_daily": 6.0,
-      "load_charge_daily": 6.0
+      "load_charge_daily": 16.4
     },
     {
       "hourmeter": 98597,
       "battery_voltage_min": 12.368774,
       "battery_voltage_max": 14.120483,
       "battery_charge_daily": 17.1,
-      "load_charge_daily": 17.1
+      "load_charge_daily": 10.0
     },
     {
       "hourmeter": 100390,
       "battery_voltage_min": 12.747192,
       "battery_voltage_max": 14.440918,
       "battery_charge_daily": 7.3,
-      "load_charge_daily": 7.3
+      "load_charge_daily": 0.7
     },
     {
       "hourmeter": 102692,
       "battery_voltage_min": 11.413574,
       "battery_voltage_max": 12.750244,
       "battery_charge_daily": 22.300001,
-      "load_charge_daily": 22.300001
+      "load_charge_daily": 64.8
     },
     {
       "hourmeter": 104741,
       "battery_voltage_min": 12.481689,
       "battery_voltage_max": 14.105225,
       "battery_charge_daily": 16.2,
-      "load_charge_daily": 16.2
+      "load_charge_daily": 9.7
     },
     {
       "hourmeter": 106534,
       "battery_voltage_min": 12.542725,
       "battery_voltage_max": 14.129639,
       "battery_charge_daily": 10.8,
-      "load_charge_daily": 10.8
+      "load_charge_daily": 4.5
     },
     {
       "hourmeter": 108836,
       "battery_voltage_min": 11.358643,
       "battery_voltage_max": 12.60376,
       "battery_charge_daily": 24.2,
-      "load_charge_daily": 24.2
+      "load_charge_daily": 29.5
     },
     {
       "hourmeter": 110885,
       "battery_voltage_min": 12.518311,
       "battery_voltage_max": 13.05542,
       "battery_charge_daily": 6.9,
-      "load_charge_daily": 6.9
+      "load_charge_daily": 9.6
     },
     {
       "hourmeter": 112678,
       "battery_voltage_min": 12.527466,
       "battery_voltage_max": 14.016724,
       "battery_charge_daily": 7.8,
-      "load_charge_daily": 7.8
+      "load_charge_daily": 4.7000003
     },
     {
       "hourmeter": 114980,
       "battery_voltage_min": 11.395264,
       "battery_voltage_max": 12.609863,
       "battery_charge_daily": 17.6,
-      "load_charge_daily": 17.6
+      "load_charge_daily": 19.2
     },
     {
       "hourmeter": 117029,
       "battery_voltage_min": 12.10022,
       "battery_voltage_max": 14.123535,
       "battery_charge_daily": 21.9,
-      "load_charge_daily": 21.9
+      "load_charge_daily": 23.800001
     },
     {
       "hourmeter": 121124,
       "battery_voltage_min": 11.987305,
       "battery_voltage_max": 12.445068,
       "battery_charge_daily": 5.2000003,
-      "load_charge_daily": 5.2000003
+      "load_charge_daily": 2.2
     },
     {
       "hourmeter": 123173,
       "battery_voltage_min": 12.371826,
       "battery_voltage_max": 14.160156,
       "battery_charge_daily": 11.8,
-      "load_charge_daily": 11.8
+      "load_charge_daily": 4.2000003
     },
     {
       "hourmeter": 125219,
       "battery_voltage_min": 12.561035,
       "battery_voltage_max": 14.074707,
       "battery_charge_daily": 8.3,
-      "load_charge_daily": 8.3
+      "load_charge_daily": 1.8000001
     },
     {
       "hourmeter": 127268,
       "battery_voltage_min": 11.78894,
       "battery_voltage_max": 13.12561,
       "battery_charge_daily": 18.300001,
-      "load_charge_daily": 18.300001
+      "load_charge_daily": 10.3
     },
     {
       "hourmeter": 129317,
       "battery_voltage_min": 12.664795,
       "battery_voltage_max": 14.3463135,
       "battery_charge_daily": 10.0,
-      "load_charge_daily": 10.0
+      "load_charge_daily": 0.0
     }
   ]
 }

@@ -81,15 +81,17 @@
 
     <div class="container">
       <div class="row">
-        <h2>30 Day Logged Data</h2>
+        <h1>30 Day Logged Data</h1>
       </div>
       <!-- 30day graph -->
       <div class="row" id="logged_real">
+        <h2>Read Data</h2>
         <div id="logged_real_battery" class="col col-12"></div>
         <div id="logged_real_load" class="col col-12"></div>
       </div>
 
       <div class="row" id="logged_fake">
+        <h2>Fake Data</h2>
         <div id="logged_fake_battery" class="col col-12"></div>
         <div id="logged_fake_load" class="col col-12"></div>
       </div>
@@ -156,11 +158,11 @@
             data: days,
             //width: 600,
             height: 250,
-            target: id_prefix + '_battery',
             x_accessor: 'date',
-            legend: ['Voltage min','Voltage max'],
-            y_accessor: ['battery_voltage_min', 'battery_voltage_max'],
             area: false,
+            animate_on_load: true,
+            right: 40,
+            left: 90,
             chart_type: 'line',
             linked: true,
             aggregate_rollover: true,
@@ -170,16 +172,19 @@
           MG.data_graphic($.extend({}, defaults, {
             title: "Battery",
             target: id_prefix + '_battery',
-            legend: ['Voltage min','Voltage max'],
+            legend: ['min','max'],
             y_accessor: ['battery_voltage_min', 'battery_voltage_max'],
+            y_label: 'Volts',
           }));
 
 
           MG.data_graphic($.extend({}, defaults, {
             title: "Power",
             target: id_prefix + '_load',
-            legend: ['Battery mAh','Load mAh'],
+            legend: ['Battery','Load'],
+            right: 50,
             y_accessor: ['battery_charge_daily', 'load_charge_daily'],
+            y_label: 'Mili Amp Hours',
           }));
         };
       };
