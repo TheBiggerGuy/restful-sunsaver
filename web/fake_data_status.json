@@ -1,0 +1,36 @@
+{
+  "generation": {
+    "solar_input_voltage_filtered": 16.604614,
+    "calculated_generation_power": 24.42879
+  },
+  "storage": {
+    "battery_voltage_filtered": 13.171387,
+    "battery_charge_current_filtered": 1.0291187,
+    "battery_charge_power_calculated": 13.55492,
+    "charge_state": "BulkCharge"
+  },
+  "load": {
+    "load_voltage_filtered": 13.15918,
+    "load_current_filtered": 0.4420862,
+    "load_power_calculated": 5.8174915
+  },
+  "temperature": {
+    "heatsink_temperature": 23,
+    "battery_temperature": 23,
+    "ambient_temperature": 23,
+    "remote_temperature": 25
+  },
+  "faults": {
+    "array_fault": {
+      "OVERCURENT": false,
+      "FETS_SHORTED": false,
+      "SOFTWARE_BUGS": false,
+      "BATTERY_HVD": false,
+      "ARRAY_HVD": false,
+      "EEPROM_EDIT": false,
+      "RTS_SHORTED": false,
+      "RTS_DISCONECTED": false,
+      "INTERNAL_TEMP_SENSOR_FAIL": false
+    }
+  }
+}
