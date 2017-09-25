@@ -44,7 +44,7 @@ impl LoggedResponseDay {
             vb_min_daily: raw_data[3],
             vb_max_daily: raw_data[4],
             ahc_daily: raw_data[5],
-            ahl_daily: raw_data[5],
+            ahl_daily: raw_data[6],
         }
     }
 
