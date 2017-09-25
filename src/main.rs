@@ -37,25 +37,25 @@ use staticfile::Static;
 mod sunsaver_connection;
 use sunsaver_connection::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection};
 mod sunsaver;
-use sunsaver::{SunSaverResponse, ChargeState, ArrayFault};
+use sunsaver::{SunSaverResponse, ChargeState, ArrayFault, LoggedResponse, LoggedResponseDay};
 
 #[derive(Debug, Clone, Serialize)]
-struct ApiResponse {
-    generation: ApiResponseGeneration,
-    storage: ApiResponseStorage,
-    load: ApiResponseLoad,
-    temperature: ApiResponseTemperature,
-    faults: ApiResponseFaults,
+struct ApiStatusResponse {
+    generation: ApiStatusResponseGeneration,
+    storage: ApiStatusResponseStorage,
+    load: ApiStatusResponseLoad,
+    temperature: ApiStatusResponseTemperature,
+    faults: ApiStatusResponseFaults,
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct ApiResponseGeneration {
+struct ApiStatusResponseGeneration {
     solar_input_voltage_filtered: f32,
     calculated_generation_power: f32,
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct ApiResponseStorage {
+struct ApiStatusResponseStorage {
     battery_voltage_filtered: f32,
     battery_charge_current_filtered: f32,
     battery_charge_power_calculated: f32,
@@ -63,14 +63,14 @@ struct ApiResponseStorage {
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct ApiResponseLoad {
+struct ApiStatusResponseLoad {
     load_voltage_filtered: f32,
     load_current_filtered: f32,
     load_power_calculated: f32,
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct ApiResponseTemperature {
+struct ApiStatusResponseTemperature {
     heatsink_temperature: i8,
     battery_temperature: i8,
     ambient_temperature: i8,
@@ -78,11 +78,11 @@ struct ApiResponseTemperature {
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct ApiResponseFaults {
+struct ApiStatusResponseFaults {
     array_fault: ArrayFault,
 }
 
-impl From<SunSaverResponse> for ApiResponse {
+impl From<SunSaverResponse> for ApiStatusResponse {
     fn from(response: SunSaverResponse) -> Self {
         let battery_voltage_filtered = response.battery_voltage_filtered();
         let battery_charge_current_filtered = response.battery_charge_current_filtered();
@@ -90,36 +90,67 @@ impl From<SunSaverResponse> for ApiResponse {
         let load_current_filtered = response.load_current_filtered();
         let solar_input_voltage_filtered = response.solar_input_voltage_filtered();
         
-        let generation = ApiResponseGeneration {
+        let generation = ApiStatusResponseGeneration {
             solar_input_voltage_filtered: solar_input_voltage_filtered,
             calculated_generation_power: (load_current_filtered + battery_charge_current_filtered) * solar_input_voltage_filtered,
         };
-        let storage = ApiResponseStorage {
+        let storage = ApiStatusResponseStorage {
             battery_voltage_filtered: battery_voltage_filtered,
             battery_charge_current_filtered: battery_charge_current_filtered,
             battery_charge_power_calculated: battery_voltage_filtered * battery_charge_current_filtered,
             charge_state: response.charge_state(),
         };
-        let load = ApiResponseLoad {
+        let load = ApiStatusResponseLoad {
             load_voltage_filtered: load_voltage_filtered,
             load_current_filtered: load_current_filtered,
             load_power_calculated: load_voltage_filtered * load_current_filtered,
         };
-        let temperature = ApiResponseTemperature {
+        let temperature = ApiStatusResponseTemperature {
             heatsink_temperature: response.heatsink_temperature(),
             battery_temperature: response.battery_temperature(),
             ambient_temperature: response.ambient_temperature(),
             remote_temperature: response.remote_temperature(),
         };
-        let faults = ApiResponseFaults {
+        let faults = ApiStatusResponseFaults {
             array_fault: response.array_fault(),
         };
-        ApiResponse {
+        ApiStatusResponse {
             generation: generation,
             storage: storage,
             load: load,
             temperature: temperature,
             faults: faults,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ApiLoggedResponse {
+    days: Vec<ApiLoggedDayResponse>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ApiLoggedDayResponse {
+    hourmeter: u32,
+    battery_voltage_min: f32,
+    battery_voltage_max: f32,
+}
+
+impl From<LoggedResponse> for ApiLoggedResponse {
+    fn from(response: LoggedResponse) -> Self {
+        let days = response.days.into_iter().map(ApiLoggedDayResponse::from).collect();
+        ApiLoggedResponse {
+            days: days,
+        }
+    }
+}
+
+impl From<LoggedResponseDay> for ApiLoggedDayResponse {
+    fn from(response: LoggedResponseDay) -> Self {
+        ApiLoggedDayResponse {
+            hourmeter: response.hourmeter,
+            battery_voltage_min: response.battery_voltage_min(),
+            battery_voltage_max: response.battery_voltage_max(),
         }
     }
 }
@@ -150,15 +181,16 @@ impl Handler for ApiHandler {
             "status" => {
                 let connection = self.connection.clone();
                 let mut unlocked_connection = connection.lock().unwrap();
-                let a = ApiResponse::from(unlocked_connection.read_response());
+                let a = ApiStatusResponse::from(unlocked_connection.read_status());
                 let b = serde_json::to_string_pretty(&a).unwrap();
                 return Ok(Response::with((status::Ok, b)))
             },
             "logger" => {
                 let connection = self.connection.clone();
                 let mut unlocked_connection = connection.lock().unwrap();
-                unlocked_connection.read_logged_data();
-                return Ok(Response::with((status::Ok)))
+                let a = ApiLoggedResponse::from(unlocked_connection.read_logged());
+                let b = serde_json::to_string_pretty(&a).unwrap();
+                return Ok(Response::with((status::Ok, b)))
             },
             _ => panic!("Unknown action: {:?}", path),
         }
@@ -190,7 +222,7 @@ fn main() {
 
     let serial_interface = matches.value_of("device").unwrap();
 
-    let mut connection: Box<SunSaverConnection> = if is_socket(serial_interface) {
+    let connection: Box<SunSaverConnection> = if is_socket(serial_interface) {
         info!("Device is a socket. Using Modbus");
         Box::new(ModbusSunSaverConnection::open(serial_interface))
     } else {
@@ -198,8 +230,6 @@ fn main() {
         Box::new(FileSunSaverConnection::open(serial_interface))
     };
 
-    debug!("Response: {:?}", connection.read_response());
-    
     let api_handler = ApiHandler::new(connection);
 
     let mut router = Router::new();

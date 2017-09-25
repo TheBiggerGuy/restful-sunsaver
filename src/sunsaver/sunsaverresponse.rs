@@ -49,18 +49,6 @@ pub struct SunSaverResponse {
     array_fault: u16,
 }
 
-macro_rules! conv_100_2_15_scale {
-    ($expression:expr) => (
-        (($expression as f32) * 100.0) / 32768.0
-    )
-}
-
-macro_rules! conv_7916_2_15_scale {
-    ($expression:expr) => (
-        (($expression as f32) * 79.16) / 32768.0
-    )
-}
-
 impl SunSaverResponse {
     pub fn from_raw_bits(raw_data: [u16; 44]) -> SunSaverResponse {
         SunSaverResponse {
