@@ -73,19 +73,29 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
-        <h1 class="display-3">Hello, world!</h1>
-        <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
-        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
+        <h1 class="display-3">SunSaver MPPT</h1>
+        <p>Live and recored data from the SunSaver MPPT</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">API</a></p>
       </div>
     </div>
 
     <div class="container">
-      <!-- 30day graph -->
       <div class="row">
-        <div id="fake_graph"></div>
-        <div id="logged_graph"></div>
+        <h2>30 Day Logged Data</h2>
+      </div>
+      <!-- 30day graph -->
+      <div class="row" id="logged_real">
+        <div id="logged_real_battery" class="col col-12"></div>
+        <div id="logged_real_load" class="col col-12"></div>
       </div>
 
+      <div class="row" id="logged_fake">
+        <div id="logged_fake_battery" class="col col-12"></div>
+        <div id="logged_fake_load" class="col col-12"></div>
+      </div>
+    </div>
+
+    <div class="container">
       <!-- Example row of columns -->
       <div class="row">
         <div class="col-md-4">
@@ -127,7 +137,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.11.0/metricsgraphics.min.js" integrity="sha256-KpiHDqN/RY4aKfRnmlAUQi8On+GQFLYYLOh7yIwBb4c=" crossorigin="anonymous"></script>
 
     <script>
-      var plot_data = function(id) {
+      var plot_data = function(id_prefix) {
         return function(data) {
           if (data == null) return;
           let days = data.days;
@@ -140,24 +150,42 @@
             return day;
           });
 
-          MG.data_graphic({
-            title: "Downloads",
-            description: "This graphic shows a time-series of downloads.",
+          var defaults = {
+            title: "Battery",
+            //description: "This graphic shows a time-series of downloads.",
             data: days,
-            width: 600,
+            //width: 600,
             height: 250,
-            target: id,
+            target: id_prefix + '_battery',
             x_accessor: 'date',
-            y_accessor: 'battery_charge_daily',
-            show_confidence_band: ['battery_voltage_min', 'battery_voltage_max'],
+            legend: ['Voltage min','Voltage max'],
+            y_accessor: ['battery_voltage_min', 'battery_voltage_max'],
             area: false,
             chart_type: 'line',
-          });
+            linked: true,
+            aggregate_rollover: true,
+            full_width: true,
+          };
+
+          MG.data_graphic($.extend({}, defaults, {
+            title: "Battery",
+            target: id_prefix + '_battery',
+            legend: ['Voltage min','Voltage max'],
+            y_accessor: ['battery_voltage_min', 'battery_voltage_max'],
+          }));
+
+
+          MG.data_graphic($.extend({}, defaults, {
+            title: "Power",
+            target: id_prefix + '_load',
+            legend: ['Battery mAh','Load mAh'],
+            y_accessor: ['battery_charge_daily', 'load_charge_daily'],
+          }));
         };
       };
       $(document).ready(function() {
-        d3.json('/fake_data.json', plot_data('#fake_graph'));
-        d3.json('/api/v1/logged', plot_data('#logged_graph'));
+        d3.json('/api/v1/logged', plot_data('#logged_real'));
+        d3.json('/fake_data.json', plot_data('#logged_fake'));
       });
     </script>
   </body>
