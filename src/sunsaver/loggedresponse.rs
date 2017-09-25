@@ -39,8 +39,8 @@ impl LoggedResponseDay {
         LoggedResponseDay {
             hourmeter: hourmeter,
             alarm_daily: alarm_daily,
-            vb_min_daily: u16::from_be(raw_data[3]),
-            vb_max_daily: u16::from_le(raw_data[4]),
+            vb_min_daily: raw_data[3],
+            vb_max_daily: raw_data[4],
         }
     }
 
@@ -135,10 +135,10 @@ mod test {
         let day = &response.days[0];
         assert_eq!(day.hourmeter, 0x010224);
         assert_eq!(day.alarm_daily, 0x000000);
-        assert_eq!(day.vb_min_daily, 0x1110);
+        assert_eq!(day.vb_min_daily, 0x1011);
         assert_eq!(day.vb_max_daily, 0x11fb);
 
-        assert_eq!(day.battery_voltage_min(), 13.330078);
+        assert_eq!(day.battery_voltage_min(), 12.55188);
         assert_eq!(day.battery_voltage_max(), 14.047241);
     }
 }
