@@ -31,6 +31,8 @@ use iron::Iron;
 use iron::prelude::*;
 use iron::status;
 use iron::middleware::Handler;
+use iron::headers::{AccessControlAllowMethods, AccessControlAllowOrigin};
+use iron::method::Method;
 use router::Router;
 use staticfile::Static;
 
@@ -175,6 +177,10 @@ impl Handler for ApiHandler {
     fn handle(&self, req: &mut Request) -> IronResult<Response> {
         debug!("{:?}", req.url);
 
+        let mut response = Response::new();
+        response.headers.set(AccessControlAllowMethods(vec![Method::Get]));
+        response.headers.set(AccessControlAllowOrigin::Any);
+
         let path = req.url.path();
         let last_path = path.clone().pop().unwrap();
         match last_path {
@@ -183,17 +189,21 @@ impl Handler for ApiHandler {
                 let mut unlocked_connection = connection.lock().unwrap();
                 let a = ApiStatusResponse::from(unlocked_connection.read_status());
                 let b = serde_json::to_string_pretty(&a).unwrap();
-                return Ok(Response::with((status::Ok, b)))
+                response = response.set((status::Ok, b));
             },
             "logger" => {
                 let connection = self.connection.clone();
                 let mut unlocked_connection = connection.lock().unwrap();
                 let a = ApiLoggedResponse::from(unlocked_connection.read_logged());
                 let b = serde_json::to_string_pretty(&a).unwrap();
-                return Ok(Response::with((status::Ok, b)))
+                response = response.set((status::Ok, b));
             },
-            _ => panic!("Unknown action: {:?}", path),
-        }
+            _ => {
+                response = response.set((status::NotFound, String::new()));
+            },
+        };
+
+        Ok(response)
     }
 }
 
