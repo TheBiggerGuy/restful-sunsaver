@@ -128,6 +128,7 @@
         storage: [],
         load: [],
         temperature: [],
+        markers: [],
       };
 
       var plot_data_status = function(data) {
@@ -140,6 +141,7 @@
           left: 90,
 
           x_accessor: 'datetime',
+          markers: realtime_data.markers,
 
           area: false,
           animate_on_load: true,
@@ -156,31 +158,42 @@
           realtime_data[key].push(sub_data);
         });
 
+        var last_state = _.last(realtime_data.markers);
+        var state = data['storage']['charge_state'];
+        if ( last_state === undefined || last_state.label !== state ) {
+          var marker = {
+            datetime: moment().toDate(),
+            label: state,
+          };
+          realtime_data.markers.push(marker);
+        }
+
         MG.data_graphic($.extend({}, defaults, {
           title: "Generation",
           target: '#realtime_generation',
           data: realtime_data.generation,
-          legend: ['Voltage', 'Current'],
-          y_accessor: ['solar_input_voltage_filtered', 'battery_charge_current_filtered'],
-          y_label: ['Volts', 'Amps'],
+          legend: ['Voltage'],
+          y_accessor: ['solar_input_voltage_filtered'],
+          y_label: ['Volts'],
+          aggregate_rollover: false,
         }));
 
         MG.data_graphic($.extend({}, defaults, {
           title: "Battery",
           target: '#realtime_battery',
           data: realtime_data.storage,
-          legend: ['Voltage'],
-          y_accessor: ['battery_voltage_filtered'],
-          y_label: 'Volts',
+          legend: ['Voltage', 'Current'],
+          y_accessor: ['battery_voltage_filtered', 'battery_charge_current_filtered'],
+          y_label: ['Volts', 'Amps'],
         }));
 
         MG.data_graphic($.extend({}, defaults, {
           title: "Load",
           target: '#realtime_load',
           data: realtime_data.load,
-          legend: ['Voltage'],
-          y_accessor: ['load_voltage_filtered'],
-          y_label: 'Volts',
+          legend: ['Voltage', 'Current'],
+          y_accessor: ['load_voltage_filtered', 'load_current_filtered'],
+          y_label: ['Volts', 'Amps'],
         }));
 
         MG.data_graphic($.extend({}, defaults, {
