@@ -152,6 +152,8 @@
         return data;
       })(realtime_data);
 
+      var graphs = {};
+
       var plot_data_status = function(data) {
         if (data == null) return;
 
@@ -188,47 +190,57 @@
           area: false,
           animate_on_load: true,
           chart_type: 'line',
-          linked: true,
           aggregate_rollover: true,
           min_y_from_data: true,
+
+          linked: true,
+          linked_format: 'realtime_%Y-%m-%d-%H-%M-%S',
         };
 
-        MG.data_graphic($.extend({}, defaults, {
-          title: "Generation",
-          target: '#realtime_generation',
-          data: realtime_data.generation,
-          legend: ['Voltage'],
-          y_accessor: ['solar_input_voltage_filtered'],
-          y_label: ['Volts'],
-          aggregate_rollover: false,
-        }));
+        if ( graphs.realtime_generation === undefined ) {
+          graphs.generation = MG.data_graphic($.extend({}, defaults, {
+            title: "Generation",
+            target: '#realtime_generation',
+            data: realtime_data.generation,
+            legend: ['Voltage'],
+            y_accessor: ['solar_input_voltage_filtered'],
+            y_label: ['Volts'],
+            aggregate_rollover: false,
+          }));
+        }
 
-        MG.data_graphic($.extend({}, defaults, {
-          title: "Battery",
-          target: '#realtime_battery',
-          data: realtime_data.storage,
-          legend: ['Voltage', 'Current'],
-          y_accessor: ['battery_voltage_filtered', 'battery_charge_current_filtered'],
-          y_label: ['Volts', 'Amps'],
-        }));
+        if ( graphs.realtime_battery === undefined ) {
+            MG.data_graphic($.extend({}, defaults, {
+              title: "Battery",
+              target: '#realtime_battery',
+              data: realtime_data.storage,
+              legend: ['Voltage', 'Current'],
+              y_accessor: ['battery_voltage_filtered', 'battery_charge_current_filtered'],
+              y_label: ['Volts', 'Amps'],
+            }));
+        }
 
-        MG.data_graphic($.extend({}, defaults, {
-          title: "Load",
-          target: '#realtime_load',
-          data: realtime_data.load,
-          legend: ['Voltage', 'Current'],
-          y_accessor: ['load_voltage_filtered', 'load_current_filtered'],
-          y_label: ['Volts', 'Amps'],
-        }));
+        if ( graphs.realtime_load === undefined ) {
+          MG.data_graphic($.extend({}, defaults, {
+            title: "Load",
+            target: '#realtime_load',
+            data: realtime_data.load,
+            legend: ['Voltage', 'Current'],
+            y_accessor: ['load_voltage_filtered', 'load_current_filtered'],
+            y_label: ['Volts', 'Amps'],
+          }));
+        }
 
-        MG.data_graphic($.extend({}, defaults, {
-          title: "Temperature",
-          target: '#realtime_temperature',
-          data: realtime_data.temperature,
-          legend: ['Heatsink', 'Battery', 'Ambient', 'Remote'],
-          y_accessor: ['heatsink_temperature', 'battery_temperature', 'ambient_temperature', 'remote_temperature'],
-          y_label: 'C',
-        }));
+        if ( graphs.realtime_temperature === undefined ) {
+          MG.data_graphic($.extend({}, defaults, {
+            title: "Temperature",
+            target: '#realtime_temperature',
+            data: realtime_data.temperature,
+            legend: ['Heatsink', 'Battery', 'Ambient', 'Remote'],
+            y_accessor: ['heatsink_temperature', 'battery_temperature', 'ambient_temperature', 'remote_temperature'],
+            y_label: 'C',
+          }));
+        }
       };
       
       var plot_data_logged = function(data) {
@@ -256,27 +268,32 @@
           area: false,
           animate_on_load: true,
           chart_type: 'line',
-          linked: true,
           aggregate_rollover: true,
           min_y_from_data: true,
+
+          linked: true,
+          linked_format: 'logged_%Y-%m-%d',
         };
 
-        MG.data_graphic($.extend({}, defaults, {
-          title: "Battery",
-          target: '#logged_battery',
-          legend: ['min','max'],
-          y_accessor: ['battery_voltage_min', 'battery_voltage_max'],
-          y_label: 'Volts',
-        }));
+        if ( graphs.logged_battery === undefined ) {
+          MG.data_graphic($.extend({}, defaults, {
+            title: "Battery",
+            target: '#logged_battery',
+            legend: ['min','max'],
+            y_accessor: ['battery_voltage_min', 'battery_voltage_max'],
+            y_label: 'Volts',
+          }));
+        }
 
-
-        MG.data_graphic($.extend({}, defaults, {
-          title: "Power",
-          target: '#logged_load',
-          legend: ['Battery','Load'],
-          y_accessor: ['battery_charge_daily', 'load_charge_daily'],
-          y_label: 'Mili Amp Hours',
-        }));
+        if ( graphs.logged_load === undefined ) {
+          MG.data_graphic($.extend({}, defaults, {
+            title: "Power",
+            target: '#logged_load',
+            legend: ['Battery','Load'],
+            y_accessor: ['battery_charge_daily', 'load_charge_daily'],
+            y_label: 'Mili Amp Hours',
+          }));
+        }
       };
 
       var debug_should_use_fake_data = window.location.hash.includes("fake");
