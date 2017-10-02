@@ -33,6 +33,7 @@ use iron::status;
 use iron::middleware::Handler;
 use iron::headers::{AccessControlAllowMethods, AccessControlAllowOrigin};
 use iron::method::Method;
+use iron::mime::Mime;
 use router::Router;
 use staticfile::Static;
 
@@ -186,6 +187,8 @@ impl Handler for ApiHandler {
         let mut response = Response::new();
         response.headers.set(AccessControlAllowMethods(vec![Method::Get]));
         response.headers.set(AccessControlAllowOrigin::Any);
+        let mime: Mime = "application/json".parse().unwrap();
+        response = response.set((mime));
 
         let path = req.url.path();
         let last_path = path.clone().pop().unwrap();
