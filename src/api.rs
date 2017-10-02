@@ -42,7 +42,7 @@ pub struct ApiStatusResponseTemperature {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ApiStatusResponseFaults {
-    array_fault: ArrayFault,
+    array: ArrayFault,
 }
 
 impl From<SunSaverResponse> for ApiStatusResponse {
@@ -75,7 +75,7 @@ impl From<SunSaverResponse> for ApiStatusResponse {
             remote_temperature: response.remote_temperature(),
         };
         let faults = ApiStatusResponseFaults {
-            array_fault: response.array_fault(),
+            array: response.array_fault(),
         };
         ApiStatusResponse {
             generation: generation,
@@ -121,5 +121,22 @@ impl From<LoggedResponseDay> for ApiLoggedDayResponse {
             load_charge_daily: response.load_charge_daily(),
             array_voltage_max: response.array_voltage_max(),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use serde_json;
+
+    use sunsaver::ArrayFault;
+    use super::*;
+
+    #[test]
+    fn api_statusresponse_faults() {
+        let native = ApiStatusResponseFaults {
+            array: ArrayFault::empty(),
+        };
+        let json = serde_json::to_string(&native).unwrap();
+        assert_eq!(json, "{\"array\":{\"OVERCURENT\":false,\"FETS_SHORTED\":false,\"SOFTWARE_BUGS\":false,\"BATTERY_HVD\":false,\"ARRAY_HVD\":false,\"EEPROM_EDIT\":false,\"RTS_SHORTED\":false,\"RTS_DISCONECTED\":false,\"INTERNAL_TEMP_SENSOR_FAIL\":false}}");
     }
 }

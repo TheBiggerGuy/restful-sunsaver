@@ -95,11 +95,11 @@ impl Handler for ApiHandler {
     }
 }
 
-fn is_socket(path: &str) -> bool {
+fn is_rtu_modbus_device(path: &Path) -> bool {
     let metadata = fs::metadata(path).unwrap();
     let file_type = metadata.file_type();
-    debug!("is_socket for {} had metadata {:?}", path, metadata);
-    debug!("is_socket for {} is_block_device: {}, is_char_device: {}, is_fifo: {}, is_socket: {}", path, file_type.is_block_device(), file_type.is_char_device(), file_type.is_fifo(), file_type.is_socket());
+    debug!("is_socket for {:?} had metadata {:?}", path, metadata);
+    debug!("is_socket for {:?} is_block_device: {}, is_char_device: {}, is_fifo: {}, is_socket: {}", path, file_type.is_block_device(), file_type.is_char_device(), file_type.is_fifo(), file_type.is_socket());
     metadata.file_type().is_char_device()
 }
 
@@ -137,10 +137,14 @@ fn main() {
             )
         .get_matches();
 
-    let serial_interface = matches.value_of(CLI_ARG_DEVICE).unwrap();
+    let serial_interface = Path::new(matches.value_of(CLI_ARG_DEVICE).unwrap());
     let port_number = matches.value_of(CLI_ARG_PORT).unwrap().parse::<u16>().unwrap();
 
-    let connection: Box<SunSaverConnection> = if is_socket(serial_interface) {
+    if !serial_interface.exists() {
+        panic!("Device does not exists: {:?}", serial_interface);
+    }
+
+    let connection: Box<SunSaverConnection> = if is_rtu_modbus_device(serial_interface) {
         info!("Device is a socket. Using Modbus");
         Box::new(ModbusSunSaverConnection::open(serial_interface))
     } else {
@@ -172,4 +176,32 @@ fn main() {
     info!("Use Ctrl-C to stop");
     while running.load(Ordering::SeqCst) {}
     listening.close().unwrap();
+}
+
+
+#[cfg(test)]
+mod test {
+    extern crate tempdir;
+
+    use std::fs::OpenOptions;
+
+    use self::tempdir::TempDir;
+
+    use super::*;
+
+    #[test]
+    fn is_rtu_modbus_device_test() {
+        assert_eq!(is_rtu_modbus_device(Path::new("/dev/zero")), true); // TODO
+        assert_eq!(is_rtu_modbus_device(Path::new("/dev/urandom")), true); // TODO
+        assert_eq!(is_rtu_modbus_device(Path::new("/dev/tty")), true);
+        let tty_usb = Path::new("/dev/ttyUSB0");
+        if tty_usb.exists() {
+            assert_eq!(is_rtu_modbus_device(tty_usb), true);
+        }
+
+        let temp_dir = TempDir::new(concat!(module_path!(), "is_rtu_modbus_device_test")).unwrap();
+        let test_file = temp_dir.path().join("test");
+        OpenOptions::new().create(true).write(true).open(&test_file).unwrap();
+        assert_eq!(is_rtu_modbus_device(test_file.as_path()), false);
+    }
 }

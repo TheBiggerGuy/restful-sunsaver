@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::fs::{OpenOptions, File};
 use std::io::Read;
 use std::result::Result::{self, Ok, Err};
@@ -29,7 +30,7 @@ pub struct ModbusSunSaverConnection {
 }
 
 impl ModbusSunSaverConnection {
-    pub fn open(device: &str) -> ModbusSunSaverConnection {
+    pub fn open(device: &Path) -> ModbusSunSaverConnection {
         /* A Meterbus to Serial Converter (MSC) is required to adapt the Meter interface to an isolated RS-232 interface**.
            The SunSaver MPPT supports RTU mode only.
            16bit MODBUS® addresses (per the modbus.org spec)
@@ -41,8 +42,8 @@ impl ModbusSunSaverConnection {
              * Flow control: None
             All addresses listed are for the request PDU.
             The SunSaver MPPT default server address: 0x01. */
-        debug!("Configuring device {}", device);
-        let mut connection = Modbus::new_rtu(device, 9600, 'N', 8, 2).unwrap();
+        debug!("Configuring device {:?}", device);
+        let mut connection = Modbus::new_rtu(device.to_str().unwrap(), 9600, 'N', 8, 2).unwrap();
         assert!(connection.set_slave(0x01).is_ok());
         assert!(connection.rtu_set_serial_mode(SerialMode::MODBUS_RTU_RS232).is_ok());
         assert!(connection.set_response_timeout( Timeout { sec: 1, usec: 0 } ).is_ok());
@@ -110,7 +111,7 @@ pub struct FileSunSaverConnection {
 }
 
 impl FileSunSaverConnection {
-    pub fn open(filename: &str) -> FileSunSaverConnection {
+    pub fn open(filename: &Path) -> FileSunSaverConnection {
         let file = OpenOptions::new().read(true).write(false).open(filename).unwrap();
 
         FileSunSaverConnection {
