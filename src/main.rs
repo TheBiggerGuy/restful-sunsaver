@@ -1,18 +1,29 @@
+// logging
 #[macro_use]
 extern crate log;
 extern crate pretty_env_logger;
-extern crate clap;
+
+// modbus
 extern crate libmodbus_rs;
+
+// iron
 extern crate iron;
 extern crate router;
 extern crate staticfile;
+
+// json
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+
+// misc
+extern crate clap;
 extern crate ctrlc;
 extern crate retry;
 extern crate hex_slice;
+
+// datatypes
 #[macro_use]
 extern crate enum_primitive;
 #[macro_use]
