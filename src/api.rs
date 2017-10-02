@@ -52,15 +52,17 @@ impl From<SunSaverResponse> for ApiStatusResponse {
         let load_voltage_filtered = response.load_voltage_filtered();
         let load_current_filtered = response.load_current_filtered();
         let solar_input_voltage_filtered = response.solar_input_voltage_filtered();
-        
+
         let generation = ApiStatusResponseGeneration {
             solar_input_voltage_filtered: solar_input_voltage_filtered,
-            calculated_generation_power: (load_current_filtered + battery_charge_current_filtered) * solar_input_voltage_filtered,
+            calculated_generation_power: (load_current_filtered + battery_charge_current_filtered) *
+                solar_input_voltage_filtered,
         };
         let storage = ApiStatusResponseStorage {
             battery_voltage_filtered: battery_voltage_filtered,
             battery_charge_current_filtered: battery_charge_current_filtered,
-            battery_charge_power_calculated: battery_voltage_filtered * battery_charge_current_filtered,
+            battery_charge_power_calculated: battery_voltage_filtered *
+                battery_charge_current_filtered,
             charge_state: response.charge_state(),
         };
         let load = ApiStatusResponseLoad {
@@ -74,9 +76,7 @@ impl From<SunSaverResponse> for ApiStatusResponse {
             ambient_temperature: response.ambient_temperature(),
             remote_temperature: response.remote_temperature(),
         };
-        let faults = ApiStatusResponseFaults {
-            array: response.array_fault(),
-        };
+        let faults = ApiStatusResponseFaults { array: response.array_fault() };
         ApiStatusResponse {
             generation: generation,
             storage: storage,
@@ -104,10 +104,12 @@ pub struct ApiLoggedDayResponse {
 
 impl From<LoggedResponse> for ApiLoggedResponse {
     fn from(response: LoggedResponse) -> Self {
-        let days = response.days.into_iter().map(ApiLoggedDayResponse::from).collect();
-        ApiLoggedResponse {
-            days: days,
-        }
+        let days = response
+            .days
+            .into_iter()
+            .map(ApiLoggedDayResponse::from)
+            .collect();
+        ApiLoggedResponse { days: days }
     }
 }
 
@@ -133,10 +135,11 @@ mod test {
 
     #[test]
     fn api_statusresponse_faults() {
-        let native = ApiStatusResponseFaults {
-            array: ArrayFault::empty(),
-        };
+        let native = ApiStatusResponseFaults { array: ArrayFault::empty() };
         let json = serde_json::to_string(&native).unwrap();
-        assert_eq!(json, "{\"array\":{\"OVERCURENT\":false,\"FETS_SHORTED\":false,\"SOFTWARE_BUGS\":false,\"BATTERY_HVD\":false,\"ARRAY_HVD\":false,\"EEPROM_EDIT\":false,\"RTS_SHORTED\":false,\"RTS_DISCONECTED\":false,\"INTERNAL_TEMP_SENSOR_FAIL\":false}}");
+        assert_eq!(
+            json,
+            "{\"array\":{\"OVERCURENT\":false,\"FETS_SHORTED\":false,\"SOFTWARE_BUGS\":false,\"BATTERY_HVD\":false,\"ARRAY_HVD\":false,\"EEPROM_EDIT\":false,\"RTS_SHORTED\":false,\"RTS_DISCONECTED\":false,\"INTERNAL_TEMP_SENSOR_FAIL\":false}}"
+        );
     }
 }

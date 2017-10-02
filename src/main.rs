@@ -50,9 +50,7 @@ struct ApiHandler {
 
 impl ApiHandler {
     fn new(connection: Box<SunSaverConnection>) -> ApiHandler {
-        ApiHandler {
-            connection: Arc::new(Mutex::new(connection)),
-        }
+        ApiHandler { connection: Arc::new(Mutex::new(connection)) }
     }
 }
 
@@ -64,7 +62,9 @@ impl Handler for ApiHandler {
         debug!("{:?}", req.url);
 
         let mut response = Response::new();
-        response.headers.set(AccessControlAllowMethods(vec![Method::Get]));
+        response.headers.set(
+            AccessControlAllowMethods(vec![Method::Get]),
+        );
         response.headers.set(AccessControlAllowOrigin::Any);
         let mime: Mime = "application/json".parse().unwrap();
         response = response.set((mime));
@@ -78,17 +78,17 @@ impl Handler for ApiHandler {
                 let a = ApiStatusResponse::from(unlocked_connection.read_status());
                 let b = serde_json::to_string_pretty(&a).unwrap();
                 response = response.set((status::Ok, b));
-            },
+            }
             "logged" => {
                 let connection = self.connection.clone();
                 let mut unlocked_connection = connection.lock().unwrap();
                 let a = ApiLoggedResponse::from(unlocked_connection.read_logged());
                 let b = serde_json::to_string_pretty(&a).unwrap();
                 response = response.set((status::Ok, b));
-            },
+            }
             _ => {
                 response = response.set((status::NotFound, String::new()));
-            },
+            }
         };
 
         Ok(response)
@@ -99,7 +99,14 @@ fn is_rtu_modbus_device(path: &Path) -> bool {
     let metadata = fs::metadata(path).unwrap();
     let file_type = metadata.file_type();
     debug!("is_socket for {:?} had metadata {:?}", path, metadata);
-    debug!("is_socket for {:?} is_block_device: {}, is_char_device: {}, is_fifo: {}, is_socket: {}", path, file_type.is_block_device(), file_type.is_char_device(), file_type.is_fifo(), file_type.is_socket());
+    debug!(
+        "is_socket for {:?} is_block_device: {}, is_char_device: {}, is_fifo: {}, is_socket: {}",
+        path,
+        file_type.is_block_device(),
+        file_type.is_char_device(),
+        file_type.is_fifo(),
+        file_type.is_socket()
+    );
     metadata.file_type().is_char_device()
 }
 
@@ -107,7 +114,9 @@ static CLI_ARG_DEVICE: &'static str = "DEVICE";
 static CLI_ARG_PORT: &'static str = "PORT";
 
 fn is_port_number(v: String) -> Result<(), String> {
-    v.parse::<u16>().map(|_| ()).map_err(|_| format!("Invalid port number: {}", v))
+    v.parse::<u16>().map(|_| ()).map_err(|_| {
+        format!("Invalid port number: {}", v)
+    })
 }
 
 fn main() {
@@ -117,28 +126,34 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .about("HTTP RESTful server for SunSaver MPPT ModBus data")
         .author("Guy Taylor <thebiggerguy.co.uk@gmail.com>")
-        .arg(Arg::with_name(CLI_ARG_DEVICE)
-            .help("Serial device e.g. /dev/ttyUSB0")
-            .long("device")
-            .short("d")
-            .takes_value(true)
-            .empty_values(false)
-            .required(true)
-            )
-        .arg(Arg::with_name(CLI_ARG_PORT)
-            .help("HTTP server port")
-            .long("port")
-            .short("p")
-            .takes_value(true)
-            .empty_values(false)
-            .required(false)
-            .default_value("8080")
-            .validator(is_port_number)
-            )
+        .arg(
+            Arg::with_name(CLI_ARG_DEVICE)
+                .help("Serial device e.g. /dev/ttyUSB0")
+                .long("device")
+                .short("d")
+                .takes_value(true)
+                .empty_values(false)
+                .required(true),
+        )
+        .arg(
+            Arg::with_name(CLI_ARG_PORT)
+                .help("HTTP server port")
+                .long("port")
+                .short("p")
+                .takes_value(true)
+                .empty_values(false)
+                .required(false)
+                .default_value("8080")
+                .validator(is_port_number),
+        )
         .get_matches();
 
     let serial_interface = Path::new(matches.value_of(CLI_ARG_DEVICE).unwrap());
-    let port_number = matches.value_of(CLI_ARG_PORT).unwrap().parse::<u16>().unwrap();
+    let port_number = matches
+        .value_of(CLI_ARG_PORT)
+        .unwrap()
+        .parse::<u16>()
+        .unwrap();
 
     if !serial_interface.exists() {
         panic!("Device does not exists: {:?}", serial_interface);
@@ -167,12 +182,12 @@ fn main() {
         r.store(false, Ordering::SeqCst);
         info!("Cought Ctrl-C");
     }).expect("Error setting Ctrl-C handler");
-    
+
     info!("Starting server ...");
     let bind_address = format!("0.0.0.0:{}", port_number);
     let mut listening = Iron::new(router).http(&bind_address).unwrap();
     info!("Started server {}", bind_address);
-    
+
     info!("Use Ctrl-C to stop");
     while running.load(Ordering::SeqCst) {}
     listening.close().unwrap();
@@ -201,7 +216,11 @@ mod test {
 
         let temp_dir = TempDir::new(concat!(module_path!(), "is_rtu_modbus_device_test")).unwrap();
         let test_file = temp_dir.path().join("test");
-        OpenOptions::new().create(true).write(true).open(&test_file).unwrap();
+        OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open(&test_file)
+            .unwrap();
         assert_eq!(is_rtu_modbus_device(test_file.as_path()), false);
     }
 }

@@ -13,8 +13,12 @@ pub struct LoggedResponseDay {
 
 impl LoggedResponseDay {
     pub fn from_raw_bits(raw_data: [u16; 16]) -> LoggedResponseDay {
-        let hourmeter = u32::from_be((((raw_data[0] as u32) << 16) | (raw_data[1] as u32)) & 0xffffff00);
-        let alarm_daily = u32::from_be((((raw_data[1] as u32) << 16) | (raw_data[2] as u32)) & 0x00ffffff);
+        let hourmeter = u32::from_be(
+            (((raw_data[0] as u32) << 16) | (raw_data[1] as u32)) & 0xffffff00,
+        );
+        let alarm_daily = u32::from_be(
+            (((raw_data[1] as u32) << 16) | (raw_data[2] as u32)) & 0x00ffffff,
+        );
         LoggedResponseDay {
             hourmeter: hourmeter,
             alarm_daily: alarm_daily,
@@ -70,6 +74,7 @@ impl PartialEq for LoggedResponseDay {
 mod test {
     use super::*;
 
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     const DEFAULT_TEST_RAW_BITS: [u16; 16] = [
         0x2402, 0x0100, 0x0000, 0x1011, 0x11fb, 0x0047, 0x001b, 0x0000,
         0x0000, 0x1a84, 0x00b4, 0x0000, 0x010f, 0xffff, 0xffff, 0xffff,

@@ -1,4 +1,4 @@
-use ::{ChargeState, ArrayFault};
+use {ChargeState, ArrayFault};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SunSaverResponse {
@@ -50,6 +50,7 @@ pub struct SunSaverResponse {
 }
 
 impl SunSaverResponse {
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     pub fn from_raw_bits(raw_data: [u16; 44]) -> SunSaverResponse {
         SunSaverResponse {
             adc_vb_f: raw_data[0],
@@ -65,7 +66,7 @@ impl SunSaverResponse {
             array_fault: raw_data[10],
         }
     }
-    
+
     pub fn battery_voltage_filtered(&self) -> f32 {
         conv_100_2_15_scale!(self.adc_vb_f)
     }
@@ -115,6 +116,7 @@ impl SunSaverResponse {
 mod test {
     use super::*;
 
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     const DEFAULT_TEST_RAW_BITS: [u16; 44] = [
         0x1079, 0x11c9, 0x1074, 0x0035, 0x009a, 0x0017, 0x0017, 0x0017,
         0x0019, 0x0005, 0x0000, 0x1079, 0x1200, 0x0000, 0x1712, 0x0000,

@@ -1,6 +1,6 @@
 use std::convert::AsMut;
 
-use ::LoggedResponseDay;
+use LoggedResponseDay;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct LoggedResponse {
@@ -12,7 +12,7 @@ impl LoggedResponse {
         let mut days = vec![];
         for i in 0..32 {
             let offset = i * 16;
-            let data = clone_into_array(&raw_data[offset..offset+16]);
+            let data = clone_into_array(&raw_data[offset..offset + 16]);
             let day = LoggedResponseDay::from_raw_bits(data);
             if day.hourmeter == 0x000000 || day.hourmeter == 0xffffff {
                 continue;
@@ -20,15 +20,14 @@ impl LoggedResponse {
             days.push(day);
         }
         days.sort();
-        LoggedResponse {
-            days: days,
-        }
+        LoggedResponse { days: days }
     }
 }
 
 fn clone_into_array<A, T>(slice: &[T]) -> A
-    where A: Sized + Default + AsMut<[T]>,
-          T: Clone
+where
+    A: Sized + Default + AsMut<[T]>,
+    T: Clone,
 {
     let mut a = Default::default();
     <A as AsMut<[T]>>::as_mut(&mut a).clone_from_slice(slice);
@@ -39,6 +38,7 @@ fn clone_into_array<A, T>(slice: &[T]) -> A
 mod test {
     use super::*;
 
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     const DEFAULT_TEST_RAW_BITS: [u16; 32 * 16] = [
         0x0000, 0x0000, 0x0000, 0x1014, 0x1204, 0x0053, 0x0012, 0x0000, 0x0000, 0x1a84, 0x00b3, 0x0000, 0x00a3, 0xffff, 0xffff, 0xffff,
         0x2432, 0x0100, 0x0000, 0x101e, 0x11f6, 0x0051, 0x0012, 0x0000, 0x0000, 0x1af2, 0x00b3, 0x0000, 0x0a09, 0xffff, 0xffff, 0xffff,

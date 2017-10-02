@@ -9,10 +9,10 @@ use retry::{Retry, RetryError};
 
 use hex_slice::AsHex;
 
-use ::sunsaver::*;
+use sunsaver::*;
 
 pub trait SunSaverConnection {
-    fn read_raw_registers(&mut self) ->  [u16; 44];
+    fn read_raw_registers(&mut self) -> [u16; 44];
 
     fn read_raw_logged(&mut self) -> [u16; 32 * 16];
 
@@ -45,8 +45,16 @@ impl ModbusSunSaverConnection {
         debug!("Configuring device {:?}", device);
         let mut connection = Modbus::new_rtu(device.to_str().unwrap(), 9600, 'N', 8, 2).unwrap();
         assert!(connection.set_slave(0x01).is_ok());
-        assert!(connection.rtu_set_serial_mode(SerialMode::MODBUS_RTU_RS232).is_ok());
-        assert!(connection.set_response_timeout( Timeout { sec: 1, usec: 0 } ).is_ok());
+        assert!(
+            connection
+                .rtu_set_serial_mode(SerialMode::MODBUS_RTU_RS232)
+                .is_ok()
+        );
+        assert!(
+            connection
+                .set_response_timeout(Timeout { sec: 1, usec: 0 })
+                .is_ok()
+        );
         connection.set_debug(false).unwrap();
 
         let timeout = connection.get_response_timeout();
@@ -54,17 +62,23 @@ impl ModbusSunSaverConnection {
 
         assert!(connection.connect().is_ok());
         debug!("Connected");
-        
-        ModbusSunSaverConnection {
-            connection: connection,
-        }
+
+        ModbusSunSaverConnection { connection: connection }
     }
 
-    fn read_registers_retry(&self, address: i32, num_bit: i32, dest: &mut [u16]) -> Result<usize, RetryError> {
+    fn read_registers_retry(
+        &self,
+        address: i32,
+        num_bit: i32,
+        dest: &mut [u16],
+    ) -> Result<usize, RetryError> {
         match Retry::new(
-            &mut || self.connection.read_registers(address, num_bit, dest),
-            &mut |response| response.is_ok()
-            ).try(3).wait(100).execute() {
+                &mut || self.connection.read_registers(address, num_bit, dest),
+                &mut |response| response.is_ok()
+            )
+            .try(3)
+            .wait(100)
+            .execute() {
             Ok(response) => Ok(response.unwrap() as usize),
             Err(error) => Err(error),
         }
@@ -75,8 +89,10 @@ impl SunSaverConnection for ModbusSunSaverConnection {
     fn read_raw_registers(&mut self) -> [u16; 44] {
         let mut response_register = [0u16; 44 as usize];
         let mut num_read_bytes = 0;
-        num_read_bytes += self.read_registers_retry(0x08, 22, &mut response_register[0..22]).unwrap();
-        num_read_bytes += self.read_registers_retry(0x1E, 22, &mut response_register[23..44]).unwrap();
+        num_read_bytes += self.read_registers_retry(0x08, 22, &mut response_register[0..22])
+            .unwrap();
+        num_read_bytes += self.read_registers_retry(0x1E, 22, &mut response_register[23..44])
+            .unwrap();
         //if num_read_bytes != 44 {
         //    panic!("Failed to read all registers! Required 44 got {}", num_read_bytes);
         //}
@@ -91,13 +107,17 @@ impl SunSaverConnection for ModbusSunSaverConnection {
 
         for i in 0..32 {
             let offset: usize = i * 16;
-            self.read_registers_retry((0x8000 + offset) as i32, 16, &mut logged_data[offset..offset + 16]).unwrap();
+            self.read_registers_retry(
+                (0x8000 + offset) as i32,
+                16,
+                &mut logged_data[offset..offset + 16],
+            ).unwrap();
         }
 
         debug!("logged_data_start");
         for i in (0 as usize)..32 {
             let offset: usize = i * 16;
-            debug!("{:#x}", logged_data[offset..(offset+16)].as_hex());
+            debug!("{:#x}", logged_data[offset..(offset + 16)].as_hex());
         }
         debug!("logged_data_end");
 
@@ -112,11 +132,13 @@ pub struct FileSunSaverConnection {
 
 impl FileSunSaverConnection {
     pub fn open(filename: &Path) -> FileSunSaverConnection {
-        let file = OpenOptions::new().read(true).write(false).open(filename).unwrap();
+        let file = OpenOptions::new()
+            .read(true)
+            .write(false)
+            .open(filename)
+            .unwrap();
 
-        FileSunSaverConnection {
-            file: file,
-        }
+        FileSunSaverConnection { file: file }
     }
 }
 
@@ -125,11 +147,12 @@ impl SunSaverConnection for FileSunSaverConnection {
         let mut response_register_u8 = [0u8; 88 as usize];
         assert!(self.file.read_exact(&mut response_register_u8).is_ok());
 
-        let response_register_vec_u16: Vec<u16> = response_register_u8.chunks(2)
-        .map(|items| {
-            u16::from_le(((items[0] as u16) << 8) + (items[1] as u16))
-        })
-        .collect();
+        let response_register_vec_u16: Vec<u16> = response_register_u8
+            .chunks(2)
+            .map(|items| {
+                u16::from_le(((items[0] as u16) << 8) + (items[1] as u16))
+            })
+            .collect();
 
         let mut response_register_u16 = [0u16; 44 as usize];
         response_register_u16.clone_from_slice(&response_register_vec_u16);
