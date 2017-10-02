@@ -224,6 +224,13 @@ fn is_socket(path: &str) -> bool {
     metadata.file_type().is_char_device()
 }
 
+static CLI_ARG_DEVICE: &'static str = "DEVICE";
+static CLI_ARG_PORT: &'static str = "PORT";
+
+fn is_port_number(v: String) -> Result<(), String> {
+    v.parse::<u16>().map(|_| ()).map_err(|_| format!("Invalid port number: {}", v))
+}
+
 fn main() {
     assert!(pretty_env_logger::init().is_ok());
 
@@ -231,15 +238,28 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .about("HTTP RESTful server for SunSaver MPPT ModBus data")
         .author("Guy Taylor <thebiggerguy.co.uk@gmail.com>")
-        .arg(Arg::with_name("device")
+        .arg(Arg::with_name(CLI_ARG_DEVICE)
             .help("Serial device e.g. /dev/ttyUSB0")
             .long("device")
             .short("d")
             .takes_value(true)
-            .required(true))
+            .empty_values(false)
+            .required(true)
+            )
+        .arg(Arg::with_name(CLI_ARG_PORT)
+            .help("HTTP server port")
+            .long("port")
+            .short("p")
+            .takes_value(true)
+            .empty_values(false)
+            .required(false)
+            .default_value("8080")
+            .validator(is_port_number)
+            )
         .get_matches();
 
-    let serial_interface = matches.value_of("device").unwrap();
+    let serial_interface = matches.value_of(CLI_ARG_DEVICE).unwrap();
+    let port_number = matches.value_of(CLI_ARG_PORT).unwrap().parse::<u16>().unwrap();
 
     let connection: Box<SunSaverConnection> = if is_socket(serial_interface) {
         info!("Device is a socket. Using Modbus");
@@ -266,7 +286,7 @@ fn main() {
     }).expect("Error setting Ctrl-C handler");
     
     info!("Starting server ...");
-    let bind_address = format!("0.0.0.0:{}", option_env!("PORT").unwrap_or("8080"));
+    let bind_address = format!("0.0.0.0:{}", port_number);
     let mut listening = Iron::new(router).http(&bind_address).unwrap();
     info!("Started server {}", bind_address);
     
