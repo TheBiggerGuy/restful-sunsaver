@@ -69,14 +69,26 @@ mod test {
         let json = serde_json::to_string(&native).unwrap();
         assert_eq!(
             json,
-            "{\"OVERCURENT\":false,\"FETS_SHORTED\":false,\"SOFTWARE_BUGS\":false,\"BATTERY_HVD\":false,\"ARRAY_HVD\":false,\"EEPROM_EDIT\":false,\"RTS_SHORTED\":false,\"RTS_DISCONECTED\":false,\"INTERNAL_TEMP_SENSOR_FAIL\":false}"
+            "{\
+                \"OVERCURENT\":false,\
+                \"FETS_SHORTED\":false,\
+                \"SOFTWARE_BUGS\":false,\
+                \"BATTERY_HVD\":false,\
+                \"ARRAY_HVD\":false,\
+                \"EEPROM_EDIT\":false,\
+                \"RTS_SHORTED\":false,\
+                \"RTS_DISCONECTED\":false,\
+                \"INTERNAL_TEMP_SENSOR_FAIL\":false\
+            }"
         );
 
         let native = ArrayFault::OVERCURENT;
         let json = serde_json::to_string(&native).unwrap();
         assert!(
             json.starts_with(
-                "{\"OVERCURENT\":true,\"FETS_SHORTED\":false,\"SOFTWARE_BUGS\":false,",
+                "{\"OVERCURENT\":true,\
+                \"FETS_SHORTED\":false,\
+                \"SOFTWARE_BUGS\":false,",
             ),
             json
         );
@@ -85,7 +97,9 @@ mod test {
         let json = serde_json::to_string(&native).unwrap();
         assert!(
             json.starts_with(
-                "{\"OVERCURENT\":false,\"FETS_SHORTED\":true,\"SOFTWARE_BUGS\":false,",
+                "{\"OVERCURENT\":false,\
+                \"FETS_SHORTED\":true,\
+                \"SOFTWARE_BUGS\":false,",
             ),
             json
         );
@@ -94,7 +108,10 @@ mod test {
         let json = serde_json::to_string(&native).unwrap();
         assert!(
             json.starts_with(
-                "{\"OVERCURENT\":true,\"FETS_SHORTED\":true,\"SOFTWARE_BUGS\":false,",
+                "{\
+                    \"OVERCURENT\":true,\
+                    \"FETS_SHORTED\":true,\
+                    \"SOFTWARE_BUGS\":false,",
             ),
             json
         );

@@ -55,14 +55,12 @@ impl From<SunSaverResponse> for ApiStatusResponse {
 
         let generation = ApiStatusResponseGeneration {
             solar_input_voltage_filtered: solar_input_voltage_filtered,
-            calculated_generation_power: (load_current_filtered + battery_charge_current_filtered) *
-                solar_input_voltage_filtered,
+            calculated_generation_power: (load_current_filtered + battery_charge_current_filtered) * solar_input_voltage_filtered,
         };
         let storage = ApiStatusResponseStorage {
             battery_voltage_filtered: battery_voltage_filtered,
             battery_charge_current_filtered: battery_charge_current_filtered,
-            battery_charge_power_calculated: battery_voltage_filtered *
-                battery_charge_current_filtered,
+            battery_charge_power_calculated: battery_voltage_filtered * battery_charge_current_filtered,
             charge_state: response.charge_state(),
         };
         let load = ApiStatusResponseLoad {
@@ -139,7 +137,17 @@ mod test {
         let json = serde_json::to_string(&native).unwrap();
         assert_eq!(
             json,
-            "{\"array\":{\"OVERCURENT\":false,\"FETS_SHORTED\":false,\"SOFTWARE_BUGS\":false,\"BATTERY_HVD\":false,\"ARRAY_HVD\":false,\"EEPROM_EDIT\":false,\"RTS_SHORTED\":false,\"RTS_DISCONECTED\":false,\"INTERNAL_TEMP_SENSOR_FAIL\":false}}"
+            "{\"array\":{\
+                \"OVERCURENT\":false,\
+                \"FETS_SHORTED\":false,\
+                \"SOFTWARE_BUGS\":false,\
+                \"BATTERY_HVD\":false,\
+                \"ARRAY_HVD\":false,\
+                \"EEPROM_EDIT\":false,\
+                \"RTS_SHORTED\":false,\
+                \"RTS_DISCONECTED\":false,\
+                \"INTERNAL_TEMP_SENSOR_FAIL\":false\
+            }}"
         );
     }
 }

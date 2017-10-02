@@ -66,12 +66,7 @@ impl ModbusSunSaverConnection {
         ModbusSunSaverConnection { connection: connection }
     }
 
-    fn read_registers_retry(
-        &self,
-        address: i32,
-        num_bit: i32,
-        dest: &mut [u16],
-    ) -> Result<usize, RetryError> {
+    fn read_registers_retry(&self, address: i32, num_bit: i32, dest: &mut [u16]) -> Result<usize, RetryError> {
         match Retry::new(
                 &mut || self.connection.read_registers(address, num_bit, dest),
                 &mut |response| response.is_ok()
