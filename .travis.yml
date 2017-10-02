@@ -1,4 +1,6 @@
 language: rust
+services:
+  - docker
 rust:
   - stable
   - beta
@@ -14,3 +16,4 @@ script:
 - cargo fmt -- --write-mode=diff
 - cargo build
 - cargo test
+- make docker-latest
