@@ -3,6 +3,9 @@ name = "restful-sunsaver"
 version = "0.1.0"
 authors = ["Guy Taylor <thebigguy.co.uk@gmail.com>"]
 
+[badges]
+travis-ci = { repository = "TheBiggerGuy/restful-sunsaver" }
+
 [dependencies]
 libmodbus-rs = { git = "https://github.com/TheBiggerGuy/libmodbus-rs.git", branch = "guy" }
 
