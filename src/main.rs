@@ -123,6 +123,7 @@ fn is_rtu_modbus_device(path: &Path) -> bool {
 
 static CLI_ARG_DEVICE: &'static str = "DEVICE";
 static CLI_ARG_PORT: &'static str = "PORT";
+static CLI_ARG_WEB_ROOT: &'static str = "WEB_ROOT";
 
 fn is_port_number(v: String) -> Result<(), String> {
     v.parse::<u16>().map(|_| ()).map_err(|_| {
@@ -157,6 +158,15 @@ fn main() {
                 .default_value("8080")
                 .validator(is_port_number),
         )
+        .arg(
+            Arg::with_name(CLI_ARG_WEB_ROOT)
+                .help("HTTP server root folder")
+                .long("webroot")
+                .takes_value(true)
+                .empty_values(false)
+                .required(false)
+                .default_value("web"),
+        )
         .get_matches();
 
     let serial_interface = Path::new(matches.value_of(CLI_ARG_DEVICE).unwrap());
@@ -165,6 +175,7 @@ fn main() {
         .unwrap()
         .parse::<u16>()
         .unwrap();
+    let web_root = Path::new(matches.value_of(CLI_ARG_WEB_ROOT).unwrap());
 
     if !serial_interface.exists() {
         panic!("Device does not exists: {:?}", serial_interface);
@@ -179,7 +190,7 @@ fn main() {
     };
 
     let api_handler = ApiHandler::new(connection);
-    let static_handler = Static::new(Path::new("web"));
+    let static_handler = Static::new(web_root);
 
     let mut router = Router::new();
     router.get("/", static_handler.clone(), "index");
