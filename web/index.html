@@ -32,7 +32,7 @@
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.11.0/metricsgraphics.min.css" integrity="sha256-h2N0mv6gOweJh0+fSdARkYlmOPoWUnzzQmQuVkF4DSQ=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.13.0/metricsgraphics.min.css" integrity="sha256-Dm98PB1/hyjmoX2V5nNr91vkDcL7t8uYUiffv0knBK0=" crossorigin="anonymous" />
   </head>
 
   <body>
@@ -120,8 +120,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha256-gL1ibrbVcRIHKlCO5OXOPC/lZz/gpdApgQAzskqqXp8=" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.2/d3.min.js" integrity="sha256-9AVANlaB1o0L8ii1b78GD1K0oyjJofOaAk17Chn2qS4=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.11.0/metricsgraphics.min.js" integrity="sha256-KpiHDqN/RY4aKfRnmlAUQi8On+GQFLYYLOh7yIwBb4c=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js" integrity="sha256-hYXbQJK4qdJiAeDVjjQ9G0D6A0xLnDQ4eJI9dkm7Fpk=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.13.0/metricsgraphics.min.js" integrity="sha256-JgK52DGJVIJSTza9l8oJqKwk7kYT4/ua0xcaZpcTPMs=" crossorigin="anonymous"></script>
 
     <script>
       var REALTIME_STATUS_KEYS = ['generation', 'storage', 'load', 'temperature'];
@@ -309,7 +309,7 @@
           d3.json(url, plot_data_status);
         }, min_delay);
         setInterval(plot, normal_delay);
-        plot();
+        setTimeout(plot, 0);
       });
 
       $(document).ready(function() {
@@ -322,7 +322,7 @@
           d3.json(url, plot_data_logged);
         }, min_delay);
         setInterval(plot, normal_delay);
-        plot();
+        setTimeout(plot, 0);
       });
 
     </script>
