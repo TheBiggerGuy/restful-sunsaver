@@ -20,9 +20,11 @@ RUN rm src/*.rs
 
 # copy your source tree
 COPY ./src ./src
+RUN touch src/main.rs
 
 # build for release
 RUN cargo build --release
+RUN ./target/release/restful-sunsaver --version
 
 # Start fresh
 FROM debian:stretch-slim
