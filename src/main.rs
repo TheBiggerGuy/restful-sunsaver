@@ -78,7 +78,7 @@ impl Handler for ApiHandler {
         );
         response.headers.set(AccessControlAllowOrigin::Any);
         let mime: Mime = "application/json".parse().unwrap();
-        response = response.set((mime));
+        response = response.set(mime);
 
         let path = req.url.path();
         let last_path = path.clone().pop().unwrap();

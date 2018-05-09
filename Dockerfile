@@ -1,24 +1,38 @@
-FROM arm32v7/rust:latest
+FROM arm32v7/rust:latest as build
 
-COPY /usr/bin/qemu-arm-static /usr/bin/qemu-arm-static
-
+# Install non rust things
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential autoconf automake cmake \
                                                llvm-3.9-dev libclang-3.9-dev clang-3.9 \
                                                libgit2-24 ca-certificates
 
-COPY ./ /build/
-COPY ./web/ /web/
-WORKDIR /build
+# create a new empty shell project
+RUN USER=root cargo new --bin restful-sunsaver
+WORKDIR /restful-sunsaver
+
+# copy over your manifests
+COPY ./Cargo.lock ./Cargo.lock
+COPY ./Cargo.toml ./Cargo.toml
+
+# this build step will cache your dependencies
 RUN cargo build --release
-RUN cargo install
+RUN rm src/*.rs
 
-RUN apt-get purge -y build-essential autoconf automake cmake \
-                     llvm-3.9-dev libclang-3.9-dev clang-3.9 \
-                     libgit2-24 ca-certificates \
-                     qemu-user-static binfmt-support && \
-    rm -rf /build && \
-    rm -rf /var/lib/apt/lists/*
+# copy your source tree
+COPY ./src ./src
 
+# build for release
+RUN cargo build --release
+
+# Start fresh
+FROM arm32v7/debian:stable-slim
+
+# copy the build artifact from the build stage
+COPY --from=build /restful-sunsaver/target/release/restful-sunsaver .
+
+# Set up static files
+COPY ./web/ /web/
+
+# Set up service
 EXPOSE 4000
-ENTRYPOINT [ "restful-sunsaver", "--port=4000", "--webroot=/web/" ]
+ENTRYPOINT [ "./restful-sunsaver", "--port=4000", "--webroot=/web/" ]

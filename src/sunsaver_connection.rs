@@ -47,7 +47,7 @@ impl ModbusSunSaverConnection {
         assert!(connection.set_slave(0x01).is_ok());
         assert!(
             connection
-                .rtu_set_serial_mode(SerialMode::MODBUS_RTU_RS232)
+                .rtu_set_serial_mode(SerialMode::RtuRS232)
                 .is_ok()
         );
         assert!(
@@ -66,7 +66,7 @@ impl ModbusSunSaverConnection {
         ModbusSunSaverConnection { connection: connection }
     }
 
-    fn read_registers_retry(&self, address: i32, num_bit: i32, dest: &mut [u16]) -> Result<usize, RetryError> {
+    fn read_registers_retry(&self, address: u16, num_bit: u16, dest: &mut [u16]) -> Result<usize, RetryError> {
         match Retry::new(
                 &mut || self.connection.read_registers(address, num_bit, dest),
                 &mut |response| response.is_ok()
@@ -103,7 +103,7 @@ impl SunSaverConnection for ModbusSunSaverConnection {
         for i in 0..32 {
             let offset: usize = i * 16;
             self.read_registers_retry(
-                (0x8000 + offset) as i32,
+                (0x8000 + offset) as u16,
                 16,
                 &mut logged_data[offset..offset + 16],
             ).unwrap();

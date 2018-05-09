@@ -7,7 +7,7 @@ authors = ["Guy Taylor <thebigguy.co.uk@gmail.com>"]
 travis-ci = { repository = "TheBiggerGuy/restful-sunsaver" }
 
 [dependencies]
-libmodbus-rs = { git = "https://github.com/TheBiggerGuy/libmodbus-rs.git", branch = "guy" }
+libmodbus-rs= "0.8.*"
 
 log = "0.3"
 pretty_env_logger = "0.1.*"
