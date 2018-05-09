@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# https://github.com/docker/hub-feedback/issues/1261
+
+echo "Installing QEMU"
+apt-get install qemu-user-static binfmt-support
+
+echo "Setting up QEMU"
+update-binfmts --enable qemu-arm
+
+echo "Finished"
+
