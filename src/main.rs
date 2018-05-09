@@ -134,7 +134,7 @@ fn is_port_number(v: String) -> Result<(), String> {
 fn main() {
     assert!(pretty_env_logger::try_init().is_ok());
 
-    let matches = App::new("simple-client")
+    let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .about("HTTP RESTful server for SunSaver MPPT ModBus data")
         .author("Guy Taylor <thebiggerguy.co.uk@gmail.com>")
