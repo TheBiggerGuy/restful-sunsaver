@@ -1,4 +1,4 @@
-FROM arm32v7/rust:latest as build
+FROM rust:latest as build
 
 # Install non rust things
 RUN apt-get update && \
@@ -25,7 +25,7 @@ COPY ./src ./src
 RUN cargo build --release
 
 # Start fresh
-FROM arm32v7/debian:stable-slim
+FROM debian:stable-slim
 
 # copy the build artifact from the build stage
 COPY --from=build /restful-sunsaver/target/release/restful-sunsaver .
