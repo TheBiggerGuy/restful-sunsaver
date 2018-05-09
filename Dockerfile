@@ -2,7 +2,7 @@ FROM rust:1.25-slim-stretch as build
 
 # Install non rust things
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential autoconf automake cmake \
+    apt-get install -y --no-install-recommends build-essential autoconf automake libtool cmake \
                                                llvm-3.9-dev libclang-3.9-dev clang-3.9 \
                                                libgit2-24 ca-certificates
 
