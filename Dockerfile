@@ -1,4 +1,4 @@
-FROM rust:latest as build
+FROM rust:1.25-slim-stretch as build
 
 # Install non rust things
 RUN apt-get update && \
@@ -25,7 +25,7 @@ COPY ./src ./src
 RUN cargo build --release
 
 # Start fresh
-FROM debian:stable-slim
+FROM debian:stretch-slim
 
 # copy the build artifact from the build stage
 COPY --from=build /restful-sunsaver/target/release/restful-sunsaver .
