@@ -132,7 +132,7 @@ fn is_port_number(v: String) -> Result<(), String> {
 }
 
 fn main() {
-    assert!(pretty_env_logger::init().is_ok());
+    assert!(pretty_env_logger::try_init().is_ok());
 
     let matches = App::new("simple-client")
         .version(env!("CARGO_PKG_VERSION"))
