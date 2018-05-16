@@ -1,25 +1,18 @@
-language: rust
+sudo: required
+language: bash
 services:
   - docker
-sudo: required
 addons:
   apt:
     packages:
       - qemu-user-static
       - binfmt-support
-rust:
-  - stable
-  - nightly
-matrix:
-  allow_failures:
-    - rust: nightly
-cache: cargo
-before_script:
-- echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' | sudo tee -a /proc/sys/fs/binfmt_misc/register
-- export PATH="$PATH:$HOME/.cargo/bin"
-- which rustfmt || cargo install rustfmt
+env:
+  global:
+    - DOCKER_REPO: thebiggerguy/restful-sunsaver
+  matrix:
+    - ARCH=amd64   TYPE=docker
+    - ARCH=arm32v7 TYPE=docker
 script:
-- cargo fmt -- --write-mode=diff
-- cargo build
-- cargo test
-- (test "${TRAVIS_RUST_VERSION}" != "stable" || make docker-build-latest)
+  - sed --in-place "s/FROM /FROM ${ARCH}\//g" Dockerfile
+  - docker build --tag="thebiggerguy/restful-sunsaver:latest" .
