@@ -1,10 +1,22 @@
-FROM rust:1.25-slim-stretch as build
+FROM arm32v7/debian:buster-slim as base
+
+LABEL maintainer="restful.sunsaver@thebiggerguy.net"
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+
+FROM base as build
 
 # Install non rust things
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential autoconf automake libtool cmake \
                                                llvm-3.9-dev libclang-3.9-dev clang-3.9 \
-                                               libgit2-24 ca-certificates
+                                               libgit2-26 curl ca-certificates
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH=/root/.cargo/bin:$PATH
 
 # create a new empty shell project
 RUN USER=root cargo new --bin restful-sunsaver
@@ -27,14 +39,21 @@ RUN cargo build --release
 RUN ./target/release/restful-sunsaver --version
 
 # Start fresh
-FROM debian:stretch-slim
+FROM base
 
 # copy the build artifact from the build stage
-COPY --from=build /restful-sunsaver/target/release/restful-sunsaver .
+COPY --from=build /restful-sunsaver/target/release/restful-sunsaver /usr/local/bin
 
 # Set up static files
 COPY ./web/ /web/
 
+# Set up the runner script
+COPY docker-runner.sh /usr/local/bin/docker-runner
+
 # Set up service
 EXPOSE 4000
-ENTRYPOINT [ "./restful-sunsaver", "--port=4000", "--webroot=/web/" ]
+
+HEALTHCHECK --start-period=30s --interval=5m --timeout=3s --retries=2 \
+    CMD curl -f http://localhost:4000/ || exit 1
+
+ENTRYPOINT ["docker-runner"]
