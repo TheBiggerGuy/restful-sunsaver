@@ -9,7 +9,7 @@ services:
     devices:
       - "/dev/ttyUSB0:/dev/sunsaver"
     environment:
-      - "RT_LOG=restful_sunsaver=info"
+      - "RUST_LOG=restful_sunsaver=info"
     ports:
       - "4000:4000/tcp"
     deploy:
