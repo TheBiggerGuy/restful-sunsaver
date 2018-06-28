@@ -2,24 +2,31 @@ language: rust
 services:
   - docker
 sudo: required
-addons:
-  apt:
-    packages:
-      - qemu-user-static
-      - binfmt-support
+
 rust:
   - stable
   - nightly
 matrix:
   allow_failures:
     - rust: nightly
-cache: cargo
+
+cache:
+  - cargo
+  - $HOME/.cargo
+  - docker
 before_script:
-- echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' | sudo tee -a /proc/sys/fs/binfmt_misc/register
 - export PATH="$PATH:$HOME/.cargo/bin"
-- which rustfmt || cargo install rustfmt
+- rustup component add rustfmt-preview --toolchain ${TRAVIS_RUST_VERSION}
 script:
 - cargo fmt -- --write-mode=diff
 - cargo build
 - cargo test
-- (test "${TRAVIS_RUST_VERSION}" != "stable" || make docker-build-latest)
+after_success:
+  - if [ "${TRAVIS_RUST_VERSION}" == "stable" ]; then
+      if [ "${TRAVIS_BRANCH}" == "master" ]; then
+        .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:latest"
+      fi
+      if [ "${TRAVIS_BRANCH}" == "dev" ]; then
+        .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:dev"
+      fi
+    fi
