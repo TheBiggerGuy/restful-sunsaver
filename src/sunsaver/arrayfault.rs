@@ -2,7 +2,7 @@ use std::convert::From;
 
 use std::result::Result::{self, Ok};
 
-use serde::ser::{Serialize, Serializer, SerializeMap};
+use serde::ser::{Serialize, SerializeMap, Serializer};
 
 bitflags! {
     pub struct ArrayFault: u16 {
@@ -51,8 +51,8 @@ impl Serialize for ArrayFault {
 
 #[cfg(test)]
 mod test {
-    use serde_json;
     use super::*;
+    use serde_json;
 
     #[test]
     #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -70,16 +70,16 @@ mod test {
         assert_eq!(
             json,
             "{\
-                \"OVERCURENT\":false,\
-                \"FETS_SHORTED\":false,\
-                \"SOFTWARE_BUGS\":false,\
-                \"BATTERY_HVD\":false,\
-                \"ARRAY_HVD\":false,\
-                \"EEPROM_EDIT\":false,\
-                \"RTS_SHORTED\":false,\
-                \"RTS_DISCONECTED\":false,\
-                \"INTERNAL_TEMP_SENSOR_FAIL\":false\
-            }"
+             \"OVERCURENT\":false,\
+             \"FETS_SHORTED\":false,\
+             \"SOFTWARE_BUGS\":false,\
+             \"BATTERY_HVD\":false,\
+             \"ARRAY_HVD\":false,\
+             \"EEPROM_EDIT\":false,\
+             \"RTS_SHORTED\":false,\
+             \"RTS_DISCONECTED\":false,\
+             \"INTERNAL_TEMP_SENSOR_FAIL\":false\
+             }"
         );
 
         let native = ArrayFault::OVERCURENT;
@@ -87,8 +87,8 @@ mod test {
         assert!(
             json.starts_with(
                 "{\"OVERCURENT\":true,\
-                \"FETS_SHORTED\":false,\
-                \"SOFTWARE_BUGS\":false,",
+                 \"FETS_SHORTED\":false,\
+                 \"SOFTWARE_BUGS\":false,",
             ),
             json
         );
@@ -98,8 +98,8 @@ mod test {
         assert!(
             json.starts_with(
                 "{\"OVERCURENT\":false,\
-                \"FETS_SHORTED\":true,\
-                \"SOFTWARE_BUGS\":false,",
+                 \"FETS_SHORTED\":true,\
+                 \"SOFTWARE_BUGS\":false,",
             ),
             json
         );
@@ -109,9 +109,9 @@ mod test {
         assert!(
             json.starts_with(
                 "{\
-                    \"OVERCURENT\":true,\
-                    \"FETS_SHORTED\":true,\
-                    \"SOFTWARE_BUGS\":false,",
+                 \"OVERCURENT\":true,\
+                 \"FETS_SHORTED\":true,\
+                 \"SOFTWARE_BUGS\":false,",
             ),
             json
         );

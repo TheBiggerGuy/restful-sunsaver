@@ -15,12 +15,16 @@ cache:
   - $HOME/.cargo
   - docker
 before_script:
-- export PATH="$PATH:$HOME/.cargo/bin"
-- rustup component add rustfmt-preview --toolchain ${TRAVIS_RUST_VERSION}
+  - export PATH="$PATH:$HOME/.cargo/bin"
+  - rustup component add rustfmt-preview --toolchain ${TRAVIS_RUST_VERSION}
 script:
-- cargo fmt -- --write-mode=diff
-- cargo build
-- cargo test
+  - if [ "${TRAVIS_RUST_VERSION}" == "nightly" ]; then
+      cargo fmt --all -- --check
+    else
+      cargo fmt --all -- --write-mode=diff
+    fi
+  - cargo build
+  - cargo test
 after_success:
   - if [ "${TRAVIS_RUST_VERSION}" == "stable" ]; then
       if [ "${TRAVIS_BRANCH}" == "master" ]; then

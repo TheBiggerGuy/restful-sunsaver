@@ -20,8 +20,8 @@ extern crate serde_json;
 // misc
 extern crate clap;
 extern crate ctrlc;
-extern crate retry;
 extern crate hex_slice;
+extern crate retry;
 
 // datatypes
 #[macro_use]
@@ -30,27 +30,27 @@ extern crate enum_primitive;
 extern crate bitflags;
 
 use std::fs;
-use std::path::Path;
 use std::os::unix::fs::FileTypeExt;
-use std::sync::{Arc, Mutex};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 
 use clap::{App, Arg};
 
-use iron::Iron;
-use iron::prelude::*;
-use iron::status;
-use iron::middleware::Handler;
 use iron::headers::{AccessControlAllowMethods, AccessControlAllowOrigin};
 use iron::method::Method;
+use iron::middleware::Handler;
 use iron::mime::Mime;
+use iron::prelude::*;
+use iron::status;
+use iron::Iron;
 use router::Router;
 use staticfile::Static;
 
 mod sunsaver_connection;
-use sunsaver_connection::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection};
+use sunsaver_connection::{FileSunSaverConnection, ModbusSunSaverConnection, SunSaverConnection};
 mod sunsaver;
-use sunsaver::{ChargeState, ArrayFault, LoggedResponseDay};
+use sunsaver::{ArrayFault, ChargeState, LoggedResponseDay};
 mod api;
 use api::*;
 
@@ -61,7 +61,9 @@ struct ApiHandler {
 
 impl ApiHandler {
     fn new(connection: Box<SunSaverConnection>) -> ApiHandler {
-        ApiHandler { connection: Arc::new(Mutex::new(connection)) }
+        ApiHandler {
+            connection: Arc::new(Mutex::new(connection)),
+        }
     }
 }
 
@@ -73,9 +75,7 @@ impl Handler for ApiHandler {
         debug!("{:?}", req.url);
 
         let mut response = Response::new();
-        response.headers.set(
-            AccessControlAllowMethods(vec![Method::Get]),
-        );
+        response.headers.set(AccessControlAllowMethods(vec![Method::Get]));
         response.headers.set(AccessControlAllowOrigin::Any);
         let mime: Mime = "application/json".parse().unwrap();
         response = response.set(mime);
@@ -126,9 +126,7 @@ static CLI_ARG_PORT: &'static str = "PORT";
 static CLI_ARG_WEB_ROOT: &'static str = "WEB_ROOT";
 
 fn is_port_number(v: String) -> Result<(), String> {
-    v.parse::<u16>().map(|_| ()).map_err(|_| {
-        format!("Invalid port number: {}", v)
-    })
+    v.parse::<u16>().map(|_| ()).map_err(|_| format!("Invalid port number: {}", v))
 }
 
 fn main() {
@@ -170,11 +168,7 @@ fn main() {
         .get_matches();
 
     let serial_interface = Path::new(matches.value_of(CLI_ARG_DEVICE).unwrap());
-    let port_number = matches
-        .value_of(CLI_ARG_PORT)
-        .unwrap()
-        .parse::<u16>()
-        .unwrap();
+    let port_number = matches.value_of(CLI_ARG_PORT).unwrap().parse::<u16>().unwrap();
     let web_root = Path::new(matches.value_of(CLI_ARG_WEB_ROOT).unwrap());
 
     if !serial_interface.exists() {
@@ -215,7 +209,6 @@ fn main() {
     listening.close().unwrap();
 }
 
-
 #[cfg(test)]
 mod test {
     extern crate tempdir;
@@ -238,11 +231,7 @@ mod test {
 
         let temp_dir = TempDir::new(concat!(module_path!(), "is_rtu_modbus_device_test")).unwrap();
         let test_file = temp_dir.path().join("test");
-        OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open(&test_file)
-            .unwrap();
+        OpenOptions::new().create(true).write(true).open(&test_file).unwrap();
         assert_eq!(is_rtu_modbus_device(test_file.as_path()), false);
     }
 }

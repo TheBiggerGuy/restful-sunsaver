@@ -1,7 +1,7 @@
-use std::path::Path;
-use std::fs::{OpenOptions, File};
+use std::fs::{File, OpenOptions};
 use std::io::Read;
-use std::result::Result::{self, Ok, Err};
+use std::path::Path;
+use std::result::Result::{self, Err, Ok};
 
 use libmodbus_rs::{Modbus, ModbusClient, ModbusRTU, SerialMode, Timeout};
 
@@ -45,16 +45,8 @@ impl ModbusSunSaverConnection {
         debug!("Configuring device {:?}", device);
         let mut connection = Modbus::new_rtu(device.to_str().unwrap(), 9600, 'N', 8, 2).unwrap();
         assert!(connection.set_slave(0x01).is_ok());
-        assert!(
-            connection
-                .rtu_set_serial_mode(SerialMode::RtuRS232)
-                .is_ok()
-        );
-        assert!(
-            connection
-                .set_response_timeout(Timeout { sec: 1, usec: 0 })
-                .is_ok()
-        );
+        assert!(connection.rtu_set_serial_mode(SerialMode::RtuRS232).is_ok());
+        assert!(connection.set_response_timeout(Timeout { sec: 1, usec: 0 }).is_ok());
         connection.set_debug(false).unwrap();
 
         let timeout = connection.get_response_timeout();
@@ -67,13 +59,12 @@ impl ModbusSunSaverConnection {
     }
 
     fn read_registers_retry(&self, address: u16, num_bit: u16, dest: &mut [u16]) -> Result<usize, RetryError> {
-        match Retry::new(
-                &mut || self.connection.read_registers(address, num_bit, dest),
-                &mut |response| response.is_ok()
-            )
-            .try(3)
+        match Retry::new(&mut || self.connection.read_registers(address, num_bit, dest), &mut |response| {
+            response.is_ok()
+        }).try(3)
             .wait(100)
-            .execute() {
+            .execute()
+        {
             Ok(response) => Ok(response.unwrap() as usize),
             Err(error) => Err(error),
         }
@@ -84,10 +75,8 @@ impl SunSaverConnection for ModbusSunSaverConnection {
     fn read_raw_registers(&mut self) -> [u16; 44] {
         let mut response_register = [0u16; 44 as usize];
         let mut num_read_bytes = 0;
-        num_read_bytes += self.read_registers_retry(0x08, 22, &mut response_register[0..22])
-            .unwrap();
-        num_read_bytes += self.read_registers_retry(0x1E, 22, &mut response_register[23..44])
-            .unwrap();
+        num_read_bytes += self.read_registers_retry(0x08, 22, &mut response_register[0..22]).unwrap();
+        num_read_bytes += self.read_registers_retry(0x1E, 22, &mut response_register[23..44]).unwrap();
         //if num_read_bytes != 44 {
         //    panic!("Failed to read all registers! Required 44 got {}", num_read_bytes);
         //}
@@ -102,11 +91,8 @@ impl SunSaverConnection for ModbusSunSaverConnection {
 
         for i in 0..32 {
             let offset: usize = i * 16;
-            self.read_registers_retry(
-                (0x8000 + offset) as u16,
-                16,
-                &mut logged_data[offset..offset + 16],
-            ).unwrap();
+            self.read_registers_retry((0x8000 + offset) as u16, 16, &mut logged_data[offset..offset + 16])
+                .unwrap();
         }
 
         debug!("logged_data_start");
@@ -127,11 +113,7 @@ pub struct FileSunSaverConnection {
 
 impl FileSunSaverConnection {
     pub fn open(filename: &Path) -> FileSunSaverConnection {
-        let file = OpenOptions::new()
-            .read(true)
-            .write(false)
-            .open(filename)
-            .unwrap();
+        let file = OpenOptions::new().read(true).write(false).open(filename).unwrap();
 
         FileSunSaverConnection { file: file }
     }
@@ -144,9 +126,7 @@ impl SunSaverConnection for FileSunSaverConnection {
 
         let response_register_vec_u16: Vec<u16> = response_register_u8
             .chunks(2)
-            .map(|items| {
-                u16::from_le(((items[0] as u16) << 8) + (items[1] as u16))
-            })
+            .map(|items| u16::from_le(((items[0] as u16) << 8) + (items[1] as u16)))
             .collect();
 
         let mut response_register_u16 = [0u16; 44 as usize];

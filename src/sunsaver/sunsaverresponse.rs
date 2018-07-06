@@ -1,4 +1,4 @@
-use {ChargeState, ArrayFault};
+use {ArrayFault, ChargeState};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SunSaverResponse {

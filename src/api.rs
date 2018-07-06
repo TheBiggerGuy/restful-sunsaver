@@ -1,6 +1,6 @@
 use std::convert::From;
 
-use sunsaver::{SunSaverResponse, ChargeState, ArrayFault, LoggedResponse, LoggedResponseDay};
+use sunsaver::{ArrayFault, ChargeState, LoggedResponse, LoggedResponseDay, SunSaverResponse};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ApiStatusResponse {
@@ -74,7 +74,9 @@ impl From<SunSaverResponse> for ApiStatusResponse {
             ambient_temperature: response.ambient_temperature(),
             remote_temperature: response.remote_temperature(),
         };
-        let faults = ApiStatusResponseFaults { array: response.array_fault() };
+        let faults = ApiStatusResponseFaults {
+            array: response.array_fault(),
+        };
         ApiStatusResponse {
             generation: generation,
             storage: storage,
@@ -102,11 +104,7 @@ pub struct ApiLoggedDayResponse {
 
 impl From<LoggedResponse> for ApiLoggedResponse {
     fn from(response: LoggedResponse) -> Self {
-        let days = response
-            .days
-            .into_iter()
-            .map(ApiLoggedDayResponse::from)
-            .collect();
+        let days = response.days.into_iter().map(ApiLoggedDayResponse::from).collect();
         ApiLoggedResponse { days: days }
     }
 }
@@ -128,8 +126,8 @@ impl From<LoggedResponseDay> for ApiLoggedDayResponse {
 mod test {
     use serde_json;
 
-    use sunsaver::ArrayFault;
     use super::*;
+    use sunsaver::ArrayFault;
 
     #[test]
     fn api_statusresponse_faults() {
@@ -138,16 +136,16 @@ mod test {
         assert_eq!(
             json,
             "{\"array\":{\
-                \"OVERCURENT\":false,\
-                \"FETS_SHORTED\":false,\
-                \"SOFTWARE_BUGS\":false,\
-                \"BATTERY_HVD\":false,\
-                \"ARRAY_HVD\":false,\
-                \"EEPROM_EDIT\":false,\
-                \"RTS_SHORTED\":false,\
-                \"RTS_DISCONECTED\":false,\
-                \"INTERNAL_TEMP_SENSOR_FAIL\":false\
-            }}"
+             \"OVERCURENT\":false,\
+             \"FETS_SHORTED\":false,\
+             \"SOFTWARE_BUGS\":false,\
+             \"BATTERY_HVD\":false,\
+             \"ARRAY_HVD\":false,\
+             \"EEPROM_EDIT\":false,\
+             \"RTS_SHORTED\":false,\
+             \"RTS_DISCONECTED\":false,\
+             \"INTERNAL_TEMP_SENSOR_FAIL\":false\
+             }}"
         );
     }
 }

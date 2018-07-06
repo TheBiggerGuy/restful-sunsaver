@@ -2,7 +2,7 @@ use std::cmp::{Ord, Ordering};
 
 #[derive(Debug, Clone, Serialize, Eq)]
 pub struct LoggedResponseDay {
-    pub hourmeter: u32, // u24
+    pub hourmeter: u32,   // u24
     pub alarm_daily: u32, // u24
     vb_min_daily: u16,
     vb_max_daily: u16,
@@ -13,12 +13,8 @@ pub struct LoggedResponseDay {
 
 impl LoggedResponseDay {
     pub fn from_raw_bits(raw_data: [u16; 16]) -> LoggedResponseDay {
-        let hourmeter = u32::from_be(
-            (((raw_data[0] as u32) << 16) | (raw_data[1] as u32)) & 0xffffff00,
-        );
-        let alarm_daily = u32::from_be(
-            (((raw_data[1] as u32) << 16) | (raw_data[2] as u32)) & 0x00ffffff,
-        );
+        let hourmeter = u32::from_be((((raw_data[0] as u32) << 16) | (raw_data[1] as u32)) & 0xffffff00);
+        let alarm_daily = u32::from_be((((raw_data[1] as u32) << 16) | (raw_data[2] as u32)) & 0x00ffffff);
         LoggedResponseDay {
             hourmeter: hourmeter,
             alarm_daily: alarm_daily,
@@ -50,7 +46,6 @@ impl LoggedResponseDay {
         conv_100_2_15_scale!(self.va_max_daily)
     }
 }
-
 
 impl Ord for LoggedResponseDay {
     fn cmp(&self, other: &LoggedResponseDay) -> Ordering {
