@@ -19,18 +19,18 @@ before_script:
   - rustup component add rustfmt-preview --toolchain ${TRAVIS_RUST_VERSION}
 script:
   - if [ "${TRAVIS_RUST_VERSION}" == "nightly" ]; then
-      cargo fmt --all -- --check
+      cargo fmt --all -- --check;
     else
-      cargo fmt --all -- --write-mode=diff
+      cargo fmt --all -- --write-mode=diff;
     fi
   - cargo build
   - cargo test
 after_success:
   - if [ "${TRAVIS_RUST_VERSION}" == "stable" ]; then
       if [ "${TRAVIS_BRANCH}" == "master" ]; then
-        .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:latest"
+        .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:latest";
       fi
       if [ "${TRAVIS_BRANCH}" == "dev" ]; then
-        .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:dev"
+        .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:dev";
       fi
     fi
