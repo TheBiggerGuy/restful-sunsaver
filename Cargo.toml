@@ -6,7 +6,7 @@ authors = ["Guy Taylor <thebigguy.co.uk@gmail.com>"]
 [dependencies]
 libmodbus-rs = { git = "https://github.com/TheBiggerGuy/libmodbus-rs.git", branch = "guy" }
 clap = "2.19.3"
-log = "0.3"
+log = "0.4"
 pretty_env_logger = "0.1.*"
 iron = "0.5.*"
 router = "0.5.*"
