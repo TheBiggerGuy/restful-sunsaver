@@ -1,4 +1,9 @@
 # restful-sunsaver
+[![Build Status](https://travis-ci.org/TheBiggerGuy/restful-sunsaver.svg?branch=master)](https://travis-ci.org/TheBiggerGuy/restful-sunsaver)
+[![codecov](https://codecov.io/gh/TheBiggerGuy/restful-sunsaver/branch/master/graph/badge.svg)](https://codecov.io/gh/TheBiggerGuy/restful-sunsaver)
+[![](https://img.shields.io/github/issues-raw/TheBiggerGuy/restful-sunsaver.svg)](https://github.com/TheBiggerGuy/restful-sunsaver/issues)
+[![](https://tokei.rs/b1/github/TheBiggerGuy/restful-sunsaver)](https://github.com/TheBiggerGuy/restful-sunsaver)
+
 HTTP REST interface to the SunSaver MPPT via the serial ModBus
 
 ```bash
