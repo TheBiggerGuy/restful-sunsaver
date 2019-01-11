@@ -6,15 +6,15 @@ use serde::ser::{Serialize, SerializeMap, Serializer};
 
 bitflags! {
     pub struct ArrayFault: u16 {
-        const OVERCURENT                = 0b00000000_00000001;
-        const FETS_SHORTED              = 0b00000000_00000010;
-        const SOFTWARE_BUGS             = 0b00000000_00000100;
-        const BATTERY_HVD               = 0b00000000_00001000;
-        const ARRAY_HVD                 = 0b00000000_00010000;
-        const EEPROM_EDIT               = 0b00000000_00100000;
-        const RTS_SHORTED               = 0b00000000_01000000;
-        const RTS_DISCONECTED           = 0b00000000_10000000;
-        const INTERNAL_TEMP_SENSOR_FAIL = 0b00000001_00000000;
+        const OVERCURENT                = 0b0000_0000_0000_0001;
+        const FETS_SHORTED              = 0b0000_0000_0000_0010;
+        const SOFTWARE_BUGS             = 0b0000_0000_0000_0100;
+        const BATTERY_HVD               = 0b0000_0000_0000_1000;
+        const ARRAY_HVD                 = 0b0000_0000_0001_0000;
+        const EEPROM_EDIT               = 0b0000_0000_0010_0000;
+        const RTS_SHORTED               = 0b0000_0000_0100_0000;
+        const RTS_DISCONECTED           = 0b0000_0000_1000_0000;
+        const INTERNAL_TEMP_SENSOR_FAIL = 0b0000_0001_0000_0000;
     }
 }
 const ARRAY_FAULT_FLAGS: [ArrayFault; 9] = [
@@ -57,10 +57,10 @@ mod test {
     #[test]
     #[cfg_attr(rustfmt, rustfmt_skip)]
     fn sunsaverresponse_array_fault() {
-        assert_eq!(ArrayFault::from(0b0000000000000000), ArrayFault::empty());
-        assert_eq!(ArrayFault::from(0b0000000000000001), ArrayFault::OVERCURENT);
-        assert_eq!(ArrayFault::from(0b0000000000000010), ArrayFault::FETS_SHORTED);
-        assert_eq!(ArrayFault::from(0b0000000000000011), ArrayFault::OVERCURENT | ArrayFault::FETS_SHORTED);
+        assert_eq!(ArrayFault::from(0b0000_0000_0000_0000), ArrayFault::empty());
+        assert_eq!(ArrayFault::from(0b0000_0000_0000_0001), ArrayFault::OVERCURENT);
+        assert_eq!(ArrayFault::from(0b0000_0000_0000_0010), ArrayFault::FETS_SHORTED);
+        assert_eq!(ArrayFault::from(0b0000_0000_0000_0011), ArrayFault::OVERCURENT | ArrayFault::FETS_SHORTED);
     }
 
     #[test]

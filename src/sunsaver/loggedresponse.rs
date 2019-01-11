@@ -14,13 +14,13 @@ impl LoggedResponse {
             let offset = i * 16;
             let data = clone_into_array(&raw_data[offset..offset + 16]);
             let day = LoggedResponseDay::from_raw_bits(data);
-            if day.hourmeter == 0x000000 || day.hourmeter == 0xffffff {
+            if day.hourmeter == 0x00_0000 || day.hourmeter == 0xff_ffff {
                 continue;
             }
             days.push(day);
         }
         days.sort();
-        LoggedResponse { days: days }
+        LoggedResponse { days }
     }
 }
 
@@ -80,17 +80,17 @@ mod test {
 
         // sorted and filtered
         assert_eq!(response.days.len(), 29);
-        assert_eq!(response.days[0].hourmeter, 0x010224);
-        assert_eq!(response.days[1].hourmeter, 0x010925);
+        assert_eq!(response.days[0].hourmeter, 0x010_224);
+        assert_eq!(response.days[1].hourmeter, 0x010_925);
 
         // test a day
         let day = &response.days[0];
-        assert_eq!(day.hourmeter, 0x010224);
-        assert_eq!(day.battery_voltage_min(), 12.55188);
+        assert_eq!(day.hourmeter, 0x010_224);
+        assert_eq!(day.battery_voltage_min(), 12.551_88);
 
         // test antoher one
         let day = &response.days[5];
-        assert_eq!(day.hourmeter, 0x013224);
-        assert_eq!(day.battery_voltage_min(), 12.591553);
+        assert_eq!(day.hourmeter, 0x013_224);
+        assert_eq!(day.battery_voltage_min(), 12.591_553);
     }
 }

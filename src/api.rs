@@ -54,18 +54,18 @@ impl From<SunSaverResponse> for ApiStatusResponse {
         let solar_input_voltage_filtered = response.solar_input_voltage_filtered();
 
         let generation = ApiStatusResponseGeneration {
-            solar_input_voltage_filtered: solar_input_voltage_filtered,
+            solar_input_voltage_filtered,
             calculated_generation_power: (load_current_filtered + battery_charge_current_filtered) * solar_input_voltage_filtered,
         };
         let storage = ApiStatusResponseStorage {
-            battery_voltage_filtered: battery_voltage_filtered,
-            battery_charge_current_filtered: battery_charge_current_filtered,
+            battery_voltage_filtered,
+            battery_charge_current_filtered,
             battery_charge_power_calculated: battery_voltage_filtered * battery_charge_current_filtered,
             charge_state: response.charge_state(),
         };
         let load = ApiStatusResponseLoad {
-            load_voltage_filtered: load_voltage_filtered,
-            load_current_filtered: load_current_filtered,
+            load_voltage_filtered,
+            load_current_filtered,
             load_power_calculated: load_voltage_filtered * load_current_filtered,
         };
         let temperature = ApiStatusResponseTemperature {
@@ -78,11 +78,11 @@ impl From<SunSaverResponse> for ApiStatusResponse {
             array: response.array_fault(),
         };
         ApiStatusResponse {
-            generation: generation,
-            storage: storage,
-            load: load,
-            temperature: temperature,
-            faults: faults,
+            generation,
+            storage,
+            load,
+            temperature,
+            faults,
         }
     }
 }
@@ -105,7 +105,7 @@ pub struct ApiLoggedDayResponse {
 impl From<LoggedResponse> for ApiLoggedResponse {
     fn from(response: LoggedResponse) -> Self {
         let days = response.days.into_iter().map(ApiLoggedDayResponse::from).collect();
-        ApiLoggedResponse { days: days }
+        ApiLoggedResponse { days }
     }
 }
 

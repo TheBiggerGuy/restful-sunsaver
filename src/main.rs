@@ -125,8 +125,8 @@ static CLI_ARG_DEVICE: &'static str = "DEVICE";
 static CLI_ARG_PORT: &'static str = "PORT";
 static CLI_ARG_WEB_ROOT: &'static str = "WEB_ROOT";
 
-fn is_port_number(v: String) -> Result<(), String> {
-    v.parse::<u16>().map(|_| ()).map_err(|_| format!("Invalid port number: {}", v))
+fn is_port_number(port_string: String) -> Result<(), String> {
+    port_string.parse::<u16>().map(|_| ()).map_err(|_| String::from("Invalid port number"))
 }
 
 fn main() {

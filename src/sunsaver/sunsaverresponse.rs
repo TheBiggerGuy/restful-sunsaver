@@ -150,12 +150,12 @@ mod test {
     fn sunsaverresponse_from_raw_bits_converted() {
         let response = SunSaverResponse::from_raw_bits(DEFAULT_TEST_RAW_BITS);
 
-        assert_eq!(response.battery_voltage_filtered(), 12.869263);
-        assert_eq!(response.solar_input_voltage_filtered(), 13.894653);
+        assert_eq!(response.battery_voltage_filtered(), 12.869_263);
+        assert_eq!(response.solar_input_voltage_filtered(), 13.894_653);
 
-        assert_eq!(response.load_voltage_filtered(), 12.854004);
-        assert_eq!(response.battery_charge_current_filtered(), 0.12803589);
-        assert_eq!(response.load_current_filtered(), 0.37202883);
+        assert_eq!(response.load_voltage_filtered(), 12.854_004);
+        assert_eq!(response.battery_charge_current_filtered(), 0.128_035_89);
+        assert_eq!(response.load_current_filtered(), 0.372_028_83);
 
         assert_eq!(response.heatsink_temperature(), 23);
         assert_eq!(response.battery_temperature(), 23);

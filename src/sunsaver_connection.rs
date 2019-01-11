@@ -55,7 +55,7 @@ impl ModbusSunSaverConnection {
         assert!(connection.connect().is_ok());
         debug!("Connected");
 
-        ModbusSunSaverConnection { connection: connection }
+        ModbusSunSaverConnection { connection }
     }
 
     fn read_registers_retry(&self, address: u16, num_bit: u16, dest: &mut [u16]) -> Result<usize, RetryError> {
@@ -116,7 +116,7 @@ impl FileSunSaverConnection {
     pub fn open(filename: &Path) -> FileSunSaverConnection {
         let file = OpenOptions::new().read(true).write(false).open(filename).unwrap();
 
-        FileSunSaverConnection { file: file }
+        FileSunSaverConnection { file }
     }
 }
 
@@ -127,7 +127,7 @@ impl SunSaverConnection for FileSunSaverConnection {
 
         let response_register_vec_u16: Vec<u16> = response_register_u8
             .chunks(2)
-            .map(|items| u16::from_le(((items[0] as u16) << 8) + (items[1] as u16)))
+            .map(|items| u16::from_le((u16::from(items[0]) << 8) + u16::from(items[1])))
             .collect();
 
         let mut response_register_u16 = [0u16; 44 as usize];
