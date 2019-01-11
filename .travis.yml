@@ -1,8 +1,49 @@
 language: rust
+services:
+  - docker
+sudo: required
+
 rust:
   - stable
-  - beta
   - nightly
+
 matrix:
   allow_failures:
     - rust: nightly
+  fast_finish: true
+
+cache:
+  - cargo
+  - docker
+
+install: true
+
+stages:
+  - name: test
+  - name: lint
+
+# Default script is the "test" stage
+script:
+  - cargo build
+  - cargo test
+
+jobs:
+  include:
+    - stage: lint
+      rust: stable
+      install:
+        - rustup component add clippy
+        - rustup component add rustfmt
+      script:
+        - cargo fmt --all -- --check
+        - cargo clippy --all-targets --all-features -- -D warnings -A clippy::needless-pass-by-value -A clippy::float_cmp
+
+after_success:
+  - if [ "${TRAVIS_RUST_VERSION}" == "stable" ]; then
+      if [ "${TRAVIS_BRANCH}" == "master" ]; then
+        .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:latest";
+      fi
+      if [ "${TRAVIS_BRANCH}" == "dev" ]; then
+        .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:dev";
+      fi
+    fi

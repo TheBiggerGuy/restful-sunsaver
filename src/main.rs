@@ -1,167 +1,58 @@
+// logging
 #[macro_use]
 extern crate log;
 extern crate pretty_env_logger;
-extern crate clap;
+
+// modbus
 extern crate libmodbus_rs;
+
+// iron
 extern crate iron;
 extern crate router;
 extern crate staticfile;
+
+// json
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+
+// misc
+extern crate clap;
 extern crate ctrlc;
-extern crate retry;
 extern crate hex_slice;
+extern crate retry;
+
+// datatypes
 #[macro_use]
 extern crate enum_primitive;
 #[macro_use]
 extern crate bitflags;
 
 use std::fs;
-use std::path::Path;
 use std::os::unix::fs::FileTypeExt;
-use std::sync::{Arc, Mutex};
-use std::convert::From;
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 
 use clap::{App, Arg};
 
-use iron::Iron;
-use iron::prelude::*;
-use iron::status;
-use iron::middleware::Handler;
 use iron::headers::{AccessControlAllowMethods, AccessControlAllowOrigin};
 use iron::method::Method;
+use iron::middleware::Handler;
+use iron::mime::Mime;
+use iron::prelude::*;
+use iron::status;
+use iron::Iron;
 use router::Router;
 use staticfile::Static;
 
 mod sunsaver_connection;
-use sunsaver_connection::{SunSaverConnection, FileSunSaverConnection, ModbusSunSaverConnection};
+use sunsaver_connection::{FileSunSaverConnection, ModbusSunSaverConnection, SunSaverConnection};
 mod sunsaver;
-use sunsaver::{SunSaverResponse, ChargeState, ArrayFault, LoggedResponse, LoggedResponseDay};
-
-#[derive(Debug, Clone, Serialize)]
-struct ApiStatusResponse {
-    generation: ApiStatusResponseGeneration,
-    storage: ApiStatusResponseStorage,
-    load: ApiStatusResponseLoad,
-    temperature: ApiStatusResponseTemperature,
-    faults: ApiStatusResponseFaults,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ApiStatusResponseGeneration {
-    solar_input_voltage_filtered: f32,
-    calculated_generation_power: f32,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ApiStatusResponseStorage {
-    battery_voltage_filtered: f32,
-    battery_charge_current_filtered: f32,
-    battery_charge_power_calculated: f32,
-    charge_state: ChargeState,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ApiStatusResponseLoad {
-    load_voltage_filtered: f32,
-    load_current_filtered: f32,
-    load_power_calculated: f32,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ApiStatusResponseTemperature {
-    heatsink_temperature: i8,
-    battery_temperature: i8,
-    ambient_temperature: i8,
-    remote_temperature: i8,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ApiStatusResponseFaults {
-    array_fault: ArrayFault,
-}
-
-impl From<SunSaverResponse> for ApiStatusResponse {
-    fn from(response: SunSaverResponse) -> Self {
-        let battery_voltage_filtered = response.battery_voltage_filtered();
-        let battery_charge_current_filtered = response.battery_charge_current_filtered();
-        let load_voltage_filtered = response.load_voltage_filtered();
-        let load_current_filtered = response.load_current_filtered();
-        let solar_input_voltage_filtered = response.solar_input_voltage_filtered();
-        
-        let generation = ApiStatusResponseGeneration {
-            solar_input_voltage_filtered: solar_input_voltage_filtered,
-            calculated_generation_power: (load_current_filtered + battery_charge_current_filtered) * solar_input_voltage_filtered,
-        };
-        let storage = ApiStatusResponseStorage {
-            battery_voltage_filtered: battery_voltage_filtered,
-            battery_charge_current_filtered: battery_charge_current_filtered,
-            battery_charge_power_calculated: battery_voltage_filtered * battery_charge_current_filtered,
-            charge_state: response.charge_state(),
-        };
-        let load = ApiStatusResponseLoad {
-            load_voltage_filtered: load_voltage_filtered,
-            load_current_filtered: load_current_filtered,
-            load_power_calculated: load_voltage_filtered * load_current_filtered,
-        };
-        let temperature = ApiStatusResponseTemperature {
-            heatsink_temperature: response.heatsink_temperature(),
-            battery_temperature: response.battery_temperature(),
-            ambient_temperature: response.ambient_temperature(),
-            remote_temperature: response.remote_temperature(),
-        };
-        let faults = ApiStatusResponseFaults {
-            array_fault: response.array_fault(),
-        };
-        ApiStatusResponse {
-            generation: generation,
-            storage: storage,
-            load: load,
-            temperature: temperature,
-            faults: faults,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ApiLoggedResponse {
-    days: Vec<ApiLoggedDayResponse>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ApiLoggedDayResponse {
-    hourmeter: u32,
-    battery_voltage_min: f32,
-    battery_voltage_max: f32,
-    battery_charge_daily: f32,
-    load_charge_daily: f32,
-    array_voltage_max: f32,
-}
-
-impl From<LoggedResponse> for ApiLoggedResponse {
-    fn from(response: LoggedResponse) -> Self {
-        let days = response.days.into_iter().map(ApiLoggedDayResponse::from).collect();
-        ApiLoggedResponse {
-            days: days,
-        }
-    }
-}
-
-impl From<LoggedResponseDay> for ApiLoggedDayResponse {
-    fn from(response: LoggedResponseDay) -> Self {
-        ApiLoggedDayResponse {
-            hourmeter: response.hourmeter,
-            battery_voltage_min: response.battery_voltage_min(),
-            battery_voltage_max: response.battery_voltage_max(),
-            battery_charge_daily: response.battery_charge_daily(),
-            load_charge_daily: response.load_charge_daily(),
-            array_voltage_max: response.array_voltage_max(),
-        }
-    }
-}
+use sunsaver::{ArrayFault, ChargeState, LoggedResponseDay};
+mod api;
+use api::*;
 
 #[derive(Clone)]
 struct ApiHandler {
@@ -186,6 +77,8 @@ impl Handler for ApiHandler {
         let mut response = Response::new();
         response.headers.set(AccessControlAllowMethods(vec![Method::Get]));
         response.headers.set(AccessControlAllowOrigin::Any);
+        let mime: Mime = "application/json".parse().unwrap();
+        response = response.set(mime);
 
         let path = req.url.path();
         let last_path = path.clone().pop().unwrap();
@@ -196,49 +89,93 @@ impl Handler for ApiHandler {
                 let a = ApiStatusResponse::from(unlocked_connection.read_status());
                 let b = serde_json::to_string_pretty(&a).unwrap();
                 response = response.set((status::Ok, b));
-            },
+            }
             "logged" => {
                 let connection = self.connection.clone();
                 let mut unlocked_connection = connection.lock().unwrap();
                 let a = ApiLoggedResponse::from(unlocked_connection.read_logged());
                 let b = serde_json::to_string_pretty(&a).unwrap();
                 response = response.set((status::Ok, b));
-            },
+            }
             _ => {
                 response = response.set((status::NotFound, String::new()));
-            },
+            }
         };
 
         Ok(response)
     }
 }
 
-fn is_socket(path: &str) -> bool {
+fn is_rtu_modbus_device(path: &Path) -> bool {
     let metadata = fs::metadata(path).unwrap();
     let file_type = metadata.file_type();
-    debug!("is_socket for {} had metadata {:?}", path, metadata);
-    debug!("is_socket for {} is_block_device: {}, is_char_device: {}, is_fifo: {}, is_socket: {}", path, file_type.is_block_device(), file_type.is_char_device(), file_type.is_fifo(), file_type.is_socket());
+    debug!("is_socket for {:?} had metadata {:?}", path, metadata);
+    debug!(
+        "is_socket for {:?} is_block_device: {}, is_char_device: {}, is_fifo: {}, is_socket: {}",
+        path,
+        file_type.is_block_device(),
+        file_type.is_char_device(),
+        file_type.is_fifo(),
+        file_type.is_socket()
+    );
     metadata.file_type().is_char_device()
 }
 
-fn main() {
-    assert!(pretty_env_logger::init().is_ok());
+static CLI_ARG_DEVICE: &'static str = "DEVICE";
+static CLI_ARG_PORT: &'static str = "PORT";
+static CLI_ARG_WEB_ROOT: &'static str = "WEB_ROOT";
 
-    let matches = App::new("simple-client")
+fn is_port_number(port_string: String) -> Result<(), String> {
+    port_string.parse::<u16>().map(|_| ()).map_err(|_| String::from("Invalid port number"))
+}
+
+fn main() {
+    assert!(pretty_env_logger::try_init().is_ok());
+
+    let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .about("HTTP RESTful server for SunSaver MPPT ModBus data")
         .author("Guy Taylor <thebiggerguy.co.uk@gmail.com>")
-        .arg(Arg::with_name("device")
-            .help("Serial device e.g. /dev/ttyUSB0")
-            .long("device")
-            .short("d")
-            .takes_value(true)
-            .required(true))
+        .arg(
+            Arg::with_name(CLI_ARG_DEVICE)
+                .help("Serial device e.g. /dev/ttyUSB0")
+                .long("device")
+                .short("d")
+                .takes_value(true)
+                .empty_values(false)
+                .required(true),
+        )
+        .arg(
+            Arg::with_name(CLI_ARG_PORT)
+                .help("HTTP server port")
+                .long("port")
+                .short("p")
+                .takes_value(true)
+                .empty_values(false)
+                .required(false)
+                .default_value("8080")
+                .validator(is_port_number),
+        )
+        .arg(
+            Arg::with_name(CLI_ARG_WEB_ROOT)
+                .help("HTTP server root folder")
+                .long("webroot")
+                .takes_value(true)
+                .empty_values(false)
+                .required(false)
+                .default_value("web"),
+        )
         .get_matches();
 
-    let serial_interface = matches.value_of("device").unwrap();
+    let serial_interface = Path::new(matches.value_of(CLI_ARG_DEVICE).unwrap());
+    let port_number = matches.value_of(CLI_ARG_PORT).unwrap().parse::<u16>().unwrap();
+    let web_root = Path::new(matches.value_of(CLI_ARG_WEB_ROOT).unwrap());
 
-    let connection: Box<SunSaverConnection> = if is_socket(serial_interface) {
+    if !serial_interface.exists() {
+        panic!("Device does not exists: {:?}", serial_interface);
+    }
+
+    let connection: Box<SunSaverConnection> = if is_rtu_modbus_device(serial_interface) {
         info!("Device is a socket. Using Modbus");
         Box::new(ModbusSunSaverConnection::open(serial_interface))
     } else {
@@ -247,7 +184,7 @@ fn main() {
     };
 
     let api_handler = ApiHandler::new(connection);
-    let static_handler = Static::new(Path::new("web"));
+    let static_handler = Static::new(web_root);
 
     let mut router = Router::new();
     router.get("/", static_handler.clone(), "index");
@@ -260,14 +197,42 @@ fn main() {
     ctrlc::set_handler(move || {
         r.store(false, Ordering::SeqCst);
         info!("Cought Ctrl-C");
-    }).expect("Error setting Ctrl-C handler");
-    
+    })
+    .expect("Error setting Ctrl-C handler");
+
     info!("Starting server ...");
-    let bind_address = format!("0.0.0.0:{}", option_env!("PORT").unwrap_or("8080"));
+    let bind_address = format!("0.0.0.0:{}", port_number);
     let mut listening = Iron::new(router).http(&bind_address).unwrap();
     info!("Started server {}", bind_address);
-    
+
     info!("Use Ctrl-C to stop");
     while running.load(Ordering::SeqCst) {}
     listening.close().unwrap();
+}
+
+#[cfg(test)]
+mod test {
+    extern crate tempdir;
+
+    use std::fs::OpenOptions;
+
+    use self::tempdir::TempDir;
+
+    use super::*;
+
+    #[test]
+    fn is_rtu_modbus_device_test() {
+        assert_eq!(is_rtu_modbus_device(Path::new("/dev/zero")), true); // TODO
+        assert_eq!(is_rtu_modbus_device(Path::new("/dev/urandom")), true); // TODO
+        assert_eq!(is_rtu_modbus_device(Path::new("/dev/tty")), true);
+        let tty_usb = Path::new("/dev/ttyUSB0");
+        if tty_usb.exists() {
+            assert_eq!(is_rtu_modbus_device(tty_usb), true);
+        }
+
+        let temp_dir = TempDir::new(concat!(module_path!(), "is_rtu_modbus_device_test")).unwrap();
+        let test_file = temp_dir.path().join("test");
+        OpenOptions::new().create(true).write(true).open(&test_file).unwrap();
+        assert_eq!(is_rtu_modbus_device(test_file.as_path()), false);
+    }
 }

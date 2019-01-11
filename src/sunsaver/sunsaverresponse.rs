@@ -1,4 +1,4 @@
-use ::{ChargeState, ArrayFault};
+use {ArrayFault, ChargeState};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SunSaverResponse {
@@ -50,6 +50,7 @@ pub struct SunSaverResponse {
 }
 
 impl SunSaverResponse {
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     pub fn from_raw_bits(raw_data: [u16; 44]) -> SunSaverResponse {
         SunSaverResponse {
             adc_vb_f: raw_data[0],
@@ -65,7 +66,7 @@ impl SunSaverResponse {
             array_fault: raw_data[10],
         }
     }
-    
+
     pub fn battery_voltage_filtered(&self) -> f32 {
         conv_100_2_15_scale!(self.adc_vb_f)
     }
@@ -115,6 +116,7 @@ impl SunSaverResponse {
 mod test {
     use super::*;
 
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     const DEFAULT_TEST_RAW_BITS: [u16; 44] = [
         0x1079, 0x11c9, 0x1074, 0x0035, 0x009a, 0x0017, 0x0017, 0x0017,
         0x0019, 0x0005, 0x0000, 0x1079, 0x1200, 0x0000, 0x1712, 0x0000,
@@ -148,12 +150,12 @@ mod test {
     fn sunsaverresponse_from_raw_bits_converted() {
         let response = SunSaverResponse::from_raw_bits(DEFAULT_TEST_RAW_BITS);
 
-        assert_eq!(response.battery_voltage_filtered(), 12.869263);
-        assert_eq!(response.solar_input_voltage_filtered(), 13.894653);
+        assert_eq!(response.battery_voltage_filtered(), 12.869_263);
+        assert_eq!(response.solar_input_voltage_filtered(), 13.894_653);
 
-        assert_eq!(response.load_voltage_filtered(), 12.854004);
-        assert_eq!(response.battery_charge_current_filtered(), 0.12803589);
-        assert_eq!(response.load_current_filtered(), 0.37202883);
+        assert_eq!(response.load_voltage_filtered(), 12.854_004);
+        assert_eq!(response.battery_charge_current_filtered(), 0.128_035_89);
+        assert_eq!(response.load_current_filtered(), 0.372_028_83);
 
         assert_eq!(response.heatsink_temperature(), 23);
         assert_eq!(response.battery_temperature(), 23);

@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  restful-sunsaver:
+    image: thebiggerguy/restful-sunsaver
+    build:
+      context: .
+      dockerfile: Dockerfile
+    devices:
+      - "/dev/ttyUSB0:/dev/sunsaver"
+    environment:
+      - "RUST_LOG=restful_sunsaver=info"
+    ports:
+      - "4000:4000/tcp"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.hostname == shed
+      restart_policy:
+        condition: on-failure
+        delay: 5s

@@ -1,17 +1,59 @@
-FROM arm32v7/rust:latest
+FROM arm32v7/debian:buster-slim as base
+
+LABEL maintainer="restful.sunsaver@thebiggerguy.net"
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential autoconf automake cmake llvm-3.9-dev libclang-3.9-dev clang-3.9
-
-RUN mkdir /build
-COPY ./ /build/
-WORKDIR /build
-RUN cargo build
-RUN cargo install
-
-RUN apt-get purge -y build-essentail autoconf automake cmake llvm-3.9-dev libclang-3.9-dev clang-3.9 && \
-    rm -rf /build && \
+    apt-get install -y --no-install-recommends curl && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+
+FROM base as build
+
+# Install non rust things
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential autoconf automake libtool cmake \
+                                               llvm-3.9-dev libclang-3.9-dev clang-3.9 \
+                                               libgit2-26 curl ca-certificates
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH=/root/.cargo/bin:$PATH
+
+# create a new empty shell project
+RUN USER=root cargo new --bin restful-sunsaver
+WORKDIR /restful-sunsaver
+
+# copy over your manifests
+COPY ./Cargo.lock ./Cargo.lock
+COPY ./Cargo.toml ./Cargo.toml
+
+# this build step will cache your dependencies
+RUN cargo build --release
+RUN rm src/*.rs
+
+# copy your source tree
+COPY ./src ./src
+RUN touch src/main.rs
+
+# build for release
+RUN cargo build --release
+RUN ./target/release/restful-sunsaver --version
+
+# Start fresh
+FROM base
+
+# copy the build artifact from the build stage
+COPY --from=build /restful-sunsaver/target/release/restful-sunsaver /usr/local/bin
+
+# Set up static files
+COPY ./web/ /web/
+
+# Set up the runner script
+COPY docker-runner.sh /usr/local/bin/docker-runner
+
+# Set up service
 EXPOSE 4000
-ENTRYPOINT [ "restful-sunsaver" ]
+
+HEALTHCHECK --start-period=30s --interval=5m --timeout=3s --retries=2 \
+    CMD curl -f http://localhost:4000/ || exit 1
+
+ENTRYPOINT ["docker-runner"]

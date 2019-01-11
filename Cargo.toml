@@ -3,19 +3,30 @@ name = "restful-sunsaver"
 version = "0.1.0"
 authors = ["Guy Taylor <thebigguy.co.uk@gmail.com>"]
 
+[badges]
+travis-ci = { repository = "TheBiggerGuy/restful-sunsaver" }
+
 [dependencies]
-libmodbus-rs = { git = "https://github.com/TheBiggerGuy/libmodbus-rs.git", branch = "guy" }
-clap = "2.19.3"
-log = "0.3"
-pretty_env_logger = "0.1.*"
+libmodbus-rs= "0.8.*"
+
+log = "0.4.*"
+pretty_env_logger = "0.2.*"
+
 iron = "0.5.*"
 router = "0.5.*"
 staticfile = "*"
+
 serde = "1.0.*"
 serde_derive = "1.0.*"
 serde_json = "1.0.*"
+
+clap = "2.19.3"
 ctrlc = "*"
 retry = "0.4.*"
 hex-slice = "0.1.*"
+
 enum_primitive = "0.1.*"
 bitflags = "1.*"
+
+[dev-dependencies]
+tempdir = "0.3"
