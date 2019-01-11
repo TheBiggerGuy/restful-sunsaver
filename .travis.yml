@@ -2,6 +2,17 @@ language: rust
 services:
   - docker
 sudo: required
+addons:
+  apt:
+    packages:
+      # necessary for kcov
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - libiberty-dev
+      - binutils-dev
+      - cmake
+      - gcc
 
 rust:
   - stable
@@ -12,15 +23,12 @@ matrix:
     - rust: nightly
   fast_finish: true
 
-cache:
-  - cargo
-  - docker
-
 install: true
 
 stages:
   - name: test
   - name: lint
+  - name: coverage
 
 # Default script is the "test" stage
 script:
@@ -30,6 +38,7 @@ script:
 jobs:
   include:
     - stage: lint
+      sudo: false
       rust: stable
       install:
         - rustup component add clippy
@@ -37,6 +46,22 @@ jobs:
       script:
         - cargo fmt --all -- --check
         - cargo clippy --all-targets --all-features -- -D warnings -A clippy::needless-pass-by-value -A clippy::float_cmp
+
+    - stage: coverage
+      if: os = linux
+      sudo: true
+      rust: stable
+      env:
+        - RUSTFLAGS="-C link-dead-code"
+      install:
+        - ./.travis/kcov.sh "v36" "29ccdde3bd44f14e0d7c88d709e1e5ff9b448e735538ae45ee08b73c19a2ea0b" && export PATH="kcov/usr/bin:${PATH}";
+      script:
+        - cargo test
+        - for file in target/debug/restful_sunsaver-*[^\.d]; do
+            mkdir -p "target/cov/$(basename ${file})";
+            kcov --exclude-pattern='/.cargo,/usr/lib' --verify "target/cov/$(basename $file)" "${file}";
+          done
+        - bash <(curl -s https://codecov.io/bash) -F "${TRAVIS_RUST_VERSION}"
 
 after_success:
   - if [ "${TRAVIS_RUST_VERSION}" == "stable" ]; then
@@ -47,3 +72,7 @@ after_success:
         .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:dev";
       fi
     fi
+
+cache:
+  - cargo
+  - docker
