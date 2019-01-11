@@ -12,17 +12,12 @@ matrix:
 
 cache:
   - cargo
-  - $HOME/.cargo
   - docker
 before_script:
-  - export PATH="$PATH:$HOME/.cargo/bin"
-  - rustup component add rustfmt-preview --toolchain ${TRAVIS_RUST_VERSION}
+  - rustup component add clippy
+  - rustup component add rustfmt
 script:
-  - if [ "${TRAVIS_RUST_VERSION}" == "nightly" ]; then
-      cargo fmt --all -- --check;
-    else
-      cargo fmt --all -- --write-mode=diff;
-    fi
+  - cargo fmt --all -- --check
   - cargo build
   - cargo test
 after_success:

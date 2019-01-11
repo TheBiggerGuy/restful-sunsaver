@@ -197,7 +197,8 @@ fn main() {
     ctrlc::set_handler(move || {
         r.store(false, Ordering::SeqCst);
         info!("Cought Ctrl-C");
-    }).expect("Error setting Ctrl-C handler");
+    })
+    .expect("Error setting Ctrl-C handler");
 
     info!("Starting server ...");
     let bind_address = format!("0.0.0.0:{}", port_number);

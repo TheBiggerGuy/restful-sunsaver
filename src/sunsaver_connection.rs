@@ -32,16 +32,16 @@ pub struct ModbusSunSaverConnection {
 impl ModbusSunSaverConnection {
     pub fn open(device: &Path) -> ModbusSunSaverConnection {
         /* A Meterbus to Serial Converter (MSC) is required to adapt the Meter interface to an isolated RS-232 interface**.
-           The SunSaver MPPT supports RTU mode only.
-           16bit MODBUS® addresses (per the modbus.org spec)
-           The serial communication parameters are:
-             * BPS: 9600 baud
-             * Parity: None
-             * Data bits: 8
-             * Stop bits: 2
-             * Flow control: None
-            All addresses listed are for the request PDU.
-            The SunSaver MPPT default server address: 0x01. */
+        The SunSaver MPPT supports RTU mode only.
+        16bit MODBUS® addresses (per the modbus.org spec)
+        The serial communication parameters are:
+          * BPS: 9600 baud
+          * Parity: None
+          * Data bits: 8
+          * Stop bits: 2
+          * Flow control: None
+         All addresses listed are for the request PDU.
+         The SunSaver MPPT default server address: 0x01. */
         debug!("Configuring device {:?}", device);
         let mut connection = Modbus::new_rtu(device.to_str().unwrap(), 9600, 'N', 8, 2).unwrap();
         assert!(connection.set_slave(0x01).is_ok());
@@ -61,9 +61,10 @@ impl ModbusSunSaverConnection {
     fn read_registers_retry(&self, address: u16, num_bit: u16, dest: &mut [u16]) -> Result<usize, RetryError> {
         match Retry::new(&mut || self.connection.read_registers(address, num_bit, dest), &mut |response| {
             response.is_ok()
-        }).try(3)
-            .wait(100)
-            .execute()
+        })
+        .try(3)
+        .wait(100)
+        .execute()
         {
             Ok(response) => Ok(response.unwrap() as usize),
             Err(error) => Err(error),
