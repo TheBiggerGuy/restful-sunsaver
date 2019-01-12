@@ -69,9 +69,9 @@ jobs:
       rust: stable
       script:
         - |
-          tag_name = "${TRAVIS_BRANCH}";
+          tag_name="${TRAVIS_BRANCH}";
           if [ "${TRAVIS_BRANCH}" == "master" ]; then
-            tag_name = "latest";
+            tag_name="latest";
           fi
           .travis/build-docker-image.sh "thebiggerguy/restful-sunsaver:${tag_name}";
 
