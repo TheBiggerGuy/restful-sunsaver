@@ -171,22 +171,26 @@ fn main() {
         Box::new(FileSunSaverConnection::open(serial_interface))
     };
 
-    let api_handler = ApiHandler::new(connection);
-    let static_handler = Static::new(web_root);
-
     let mut router = Router::new();
-    router.get("/", static_handler.clone(), "index");
-    router.get("/:filepath(*)", static_handler.clone(), "static");
-    router.get("/api/v1/status", api_handler.clone(), "api_v1_status");
-    router.get("/api/v1/logged", api_handler.clone(), "api_v2_logger");
+    {
+        let api_handler = ApiHandler::new(connection);
+        let static_handler = Static::new(web_root);
+
+        router.get("/", static_handler.clone(), "index");
+        router.get("/:filepath(*)", static_handler.clone(), "static");
+        router.get("/api/v1/status", api_handler.clone(), "api_v1_status");
+        router.get("/api/v1/logged", api_handler.clone(), "api_v2_logger");
+    }
 
     let running = Arc::new(AtomicBool::new(true));
-    let r = running.clone();
-    ctrlc::set_handler(move || {
-        r.store(false, Ordering::SeqCst);
-        info!("Cought Ctrl-C");
-    })
-    .expect("Error setting Ctrl-C handler");
+    {
+        let r = running.clone();
+        ctrlc::set_handler(move || {
+            r.store(false, Ordering::SeqCst);
+            info!("Cought Ctrl-C");
+        })
+        .expect("Error setting Ctrl-C handler");
+    }
 
     info!("Starting server ...");
     let bind_address = format!("0.0.0.0:{}", port_number);
