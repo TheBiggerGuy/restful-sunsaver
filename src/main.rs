@@ -48,11 +48,11 @@ use router::Router;
 use staticfile::Static;
 
 mod sunsaver_connection;
-use sunsaver_connection::{FileSunSaverConnection, ModbusSunSaverConnection, SunSaverConnection};
+use crate::sunsaver_connection::{FileSunSaverConnection, ModbusSunSaverConnection, SunSaverConnection};
 mod sunsaver;
-use sunsaver::{ArrayFault, ChargeState, LoggedResponseDay};
+use crate::sunsaver::{ArrayFault, ChargeState, LoggedResponseDay};
 mod api;
-use api::*;
+use crate::api::*;
 
 #[derive(Clone)]
 struct ApiHandler {

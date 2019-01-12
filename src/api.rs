@@ -1,6 +1,6 @@
 use std::convert::From;
 
-use sunsaver::{ArrayFault, ChargeState, LoggedResponse, LoggedResponseDay, SunSaverResponse};
+use crate::sunsaver::{ArrayFault, ChargeState, LoggedResponse, LoggedResponseDay, SunSaverResponse};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ApiStatusResponse {
@@ -127,7 +127,7 @@ mod test {
     use serde_json;
 
     use super::*;
-    use sunsaver::ArrayFault;
+    use crate::sunsaver::ArrayFault;
 
     #[test]
     fn api_statusresponse_faults() {

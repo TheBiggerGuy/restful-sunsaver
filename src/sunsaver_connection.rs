@@ -9,7 +9,7 @@ use retry::{Retry, RetryError};
 
 use hex_slice::AsHex;
 
-use sunsaver::*;
+use crate::sunsaver::*;
 
 pub trait SunSaverConnection {
     fn read_raw_registers(&mut self) -> [u16; 44];
@@ -62,7 +62,7 @@ impl ModbusSunSaverConnection {
         match Retry::new(&mut || self.connection.read_registers(address, num_bit, dest), &mut |response| {
             response.is_ok()
         })
-        .try(3)
+        .r#try(3)
         .wait(100)
         .execute()
         {

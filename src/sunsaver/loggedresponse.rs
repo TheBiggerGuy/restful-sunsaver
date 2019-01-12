@@ -1,6 +1,6 @@
 use std::convert::AsMut;
 
-use LoggedResponseDay;
+use crate::LoggedResponseDay;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct LoggedResponse {
