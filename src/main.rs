@@ -200,13 +200,11 @@ fn main() {
 
 #[cfg(test)]
 mod test {
-    use tempdir;
+    use super::*;
 
     use std::fs::OpenOptions;
 
-    use self::tempdir::TempDir;
-
-    use super::*;
+    use tempdir::TempDir;
 
     #[test]
     fn is_rtu_modbus_device_test() {
