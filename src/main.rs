@@ -1,27 +1,15 @@
 // logging
 #[macro_use]
 extern crate log;
-extern crate pretty_env_logger;
-
-// modbus
-extern crate libmodbus_rs;
-
-// iron
-extern crate iron;
-extern crate router;
-extern crate staticfile;
+use pretty_env_logger;
 
 // json
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
+use serde_json;
 
 // misc
-extern crate clap;
-extern crate ctrlc;
-extern crate hex_slice;
-extern crate retry;
+use ctrlc;
 
 // datatypes
 #[macro_use]
@@ -48,19 +36,19 @@ use router::Router;
 use staticfile::Static;
 
 mod sunsaver_connection;
-use sunsaver_connection::{FileSunSaverConnection, ModbusSunSaverConnection, SunSaverConnection};
+use crate::sunsaver_connection::{FileSunSaverConnection, ModbusSunSaverConnection, SunSaverConnection};
 mod sunsaver;
-use sunsaver::{ArrayFault, ChargeState, LoggedResponseDay};
+use crate::sunsaver::{ArrayFault, ChargeState, LoggedResponseDay};
 mod api;
-use api::*;
+use crate::api::*;
 
 #[derive(Clone)]
 struct ApiHandler {
-    connection: Arc<Mutex<Box<SunSaverConnection>>>,
+    connection: Arc<Mutex<Box<dyn SunSaverConnection>>>,
 }
 
 impl ApiHandler {
-    fn new(connection: Box<SunSaverConnection>) -> ApiHandler {
+    fn new(connection: Box<dyn SunSaverConnection>) -> ApiHandler {
         ApiHandler {
             connection: Arc::new(Mutex::new(connection)),
         }
@@ -71,7 +59,7 @@ unsafe impl Send for ApiHandler {}
 unsafe impl Sync for ApiHandler {}
 
 impl Handler for ApiHandler {
-    fn handle(&self, req: &mut Request) -> IronResult<Response> {
+    fn handle(&self, req: &mut Request<'_, '_>) -> IronResult<Response> {
         debug!("{:?}", req.url);
 
         let mut response = Response::new();
@@ -175,7 +163,7 @@ fn main() {
         panic!("Device does not exists: {:?}", serial_interface);
     }
 
-    let connection: Box<SunSaverConnection> = if is_rtu_modbus_device(serial_interface) {
+    let connection: Box<dyn SunSaverConnection> = if is_rtu_modbus_device(serial_interface) {
         info!("Device is a socket. Using Modbus");
         Box::new(ModbusSunSaverConnection::open(serial_interface))
     } else {
@@ -212,7 +200,7 @@ fn main() {
 
 #[cfg(test)]
 mod test {
-    extern crate tempdir;
+    use tempdir;
 
     use std::fs::OpenOptions;
 

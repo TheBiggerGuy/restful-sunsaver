@@ -2,6 +2,7 @@
 name = "restful-sunsaver"
 version = "0.1.0"
 authors = ["Guy Taylor <thebigguy.co.uk@gmail.com>"]
+edition = "2018"
 
 [badges]
 travis-ci = { repository = "TheBiggerGuy/restful-sunsaver" }
