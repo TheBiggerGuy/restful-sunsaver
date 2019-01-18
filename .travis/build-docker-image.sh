@@ -21,7 +21,8 @@ fi
 
 # build the image
 sed -i 's/FROM arm32v7\/debian:buster-slim as base/FROM multiarch\/debian-debootstrap:armhf-buster-slim as base/g' Dockerfile
-docker run --rm --privileged multiarch/qemu-user-static:register
+#docker run --rm --privileged multiarch/qemu-user-static:register
+docker run --rm --privileged multiarch/qemu-user-static:register --reset
 docker build --cache-from="${CACHE_FROM}" --tag="${TAG}" .
 
 # Save Docker image to cache

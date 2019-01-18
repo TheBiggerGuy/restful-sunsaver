@@ -1,4 +1,4 @@
-FROM arm32v7/debian:buster-slim as base
+FROM multiarch/debian-debootstrap:armhf-buster-slim as base
 
 LABEL maintainer="restful.sunsaver@thebiggerguy.net"
 
@@ -12,11 +12,11 @@ FROM base as build
 
 # Install non rust things
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential autoconf automake libtool cmake \
-                                               llvm-3.9-dev libclang-3.9-dev clang-3.9 \
-                                               libgit2-26 curl ca-certificates
+    apt-get install -y --no-install-recommends gcc autoconf automake libtool cmake \
+                                               llvm-dev libclang-7-dev clang-7 \
+                                               libgit2-27 curl ca-certificates
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH=/root/.cargo/bin:$PATH
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # create a new empty shell project
 RUN USER=root cargo new --bin restful-sunsaver
@@ -54,6 +54,6 @@ COPY docker-runner.sh /usr/local/bin/docker-runner
 EXPOSE 4000
 
 HEALTHCHECK --start-period=30s --interval=5m --timeout=3s --retries=2 \
-    CMD curl -f http://localhost:4000/ || exit 1
+    CMD curl -fsS http://localhost:4000/ || exit 1
 
 ENTRYPOINT ["docker-runner"]
