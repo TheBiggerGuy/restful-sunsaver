@@ -64,16 +64,20 @@ impl<S> Handler<S> for ApiHandler {
         trace!("ApiHandler: last_path={:?}", last_path);
         match last_path {
             "status" => {
-                let connection = self.connection.clone();
-                let mut unlocked_connection = connection.lock().unwrap();
-                let a = ApiStatusResponse::from(unlocked_connection.read_status());
+                let a = {
+                    let connection = self.connection.clone();
+                    let mut unlocked_connection = connection.lock().unwrap();
+                    ApiStatusResponse::from(unlocked_connection.read_status())
+                };
                 let b = serde_json::to_string_pretty(&a).unwrap();
                 response_builder.status(http::StatusCode::OK).body(b)
             }
             "logged" => {
-                let connection = self.connection.clone();
-                let mut unlocked_connection = connection.lock().unwrap();
-                let a = ApiLoggedResponse::from(unlocked_connection.read_logged());
+                let a = {
+                    let connection = self.connection.clone();
+                    let mut unlocked_connection = connection.lock().unwrap();
+                    ApiLoggedResponse::from(unlocked_connection.read_logged())
+                };
                 let b = serde_json::to_string_pretty(&a).unwrap();
                 response_builder.status(http::StatusCode::OK).body(b)
             }
