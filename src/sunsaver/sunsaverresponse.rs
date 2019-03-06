@@ -50,7 +50,7 @@ pub struct SunSaverResponse {
 }
 
 impl SunSaverResponse {
-    #[cfg_attr(rustfmt, rustfmt_skip)]
+    #[rustfmt::skip]
     pub fn from_raw_bits(raw_data: [u16; 44]) -> SunSaverResponse {
         SunSaverResponse {
             adc_vb_f: raw_data[0],
@@ -116,7 +116,7 @@ impl SunSaverResponse {
 mod test {
     use super::*;
 
-    #[cfg_attr(rustfmt, rustfmt_skip)]
+    #[rustfmt::skip]
     const DEFAULT_TEST_RAW_BITS: [u16; 44] = [
         0x1079, 0x11c9, 0x1074, 0x0035, 0x009a, 0x0017, 0x0017, 0x0017,
         0x0019, 0x0005, 0x0000, 0x1079, 0x1200, 0x0000, 0x1712, 0x0000,
