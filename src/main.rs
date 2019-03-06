@@ -1,15 +1,12 @@
 // logging
 #[macro_use]
 extern crate log;
-use pretty_env_logger;
+use env_logger;
 
 // json
 #[macro_use]
 extern crate serde_derive;
 use serde_json;
-
-// misc
-use ctrlc;
 
 // datatypes
 #[macro_use]
@@ -20,20 +17,13 @@ extern crate bitflags;
 use std::fs;
 use std::os::unix::fs::FileTypeExt;
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-use clap::{App, Arg};
+use clap;
 
-use iron::headers::{AccessControlAllowMethods, AccessControlAllowOrigin};
-use iron::method::Method;
-use iron::middleware::Handler;
-use iron::mime::Mime;
-use iron::prelude::*;
-use iron::status;
-use iron::Iron;
-use router::Router;
-use staticfile::Static;
+use actix_web;
+use actix_web::dev::Handler;
+use actix_web::{HttpRequest, HttpResponse};
 
 mod sunsaver_connection;
 use crate::sunsaver_connection::{FileSunSaverConnection, ModbusSunSaverConnection, SunSaverConnection};
@@ -58,39 +48,41 @@ impl ApiHandler {
 unsafe impl Send for ApiHandler {}
 unsafe impl Sync for ApiHandler {}
 
-impl Handler for ApiHandler {
-    fn handle(&self, req: &mut Request<'_, '_>) -> IronResult<Response> {
-        debug!("{:?}", req.url);
+impl<S> Handler<S> for ApiHandler {
+    type Result = HttpResponse;
 
-        let mut response = Response::new();
-        response.headers.set(AccessControlAllowMethods(vec![Method::Get]));
-        response.headers.set(AccessControlAllowOrigin::Any);
-        let mime: Mime = "application/json".parse().unwrap();
-        response = response.set(mime);
+    fn handle(&self, req: &HttpRequest<S>) -> Self::Result {
+        debug!("ApiHandler: {:?}", req.uri());
 
-        let path = req.url.path();
-        let last_path = path.clone().pop().unwrap();
+        let mut response_builder = HttpResponse::Ok();
+        response_builder.header(http::header::ACCESS_CONTROL_ALLOW_METHODS, "GET");
+        response_builder.header(http::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        response_builder.header(http::header::CONTENT_TYPE, "application/json");
+
+        let path = req.path();
+        let last_path = path.rsplitn(2, '/').next().unwrap();
+        trace!("ApiHandler: last_path={:?}", last_path);
         match last_path {
             "status" => {
-                let connection = self.connection.clone();
-                let mut unlocked_connection = connection.lock().unwrap();
-                let a = ApiStatusResponse::from(unlocked_connection.read_status());
+                let a = {
+                    let connection = self.connection.clone();
+                    let mut unlocked_connection = connection.lock().unwrap();
+                    ApiStatusResponse::from(unlocked_connection.read_status())
+                };
                 let b = serde_json::to_string_pretty(&a).unwrap();
-                response = response.set((status::Ok, b));
+                response_builder.status(http::StatusCode::OK).body(b)
             }
             "logged" => {
-                let connection = self.connection.clone();
-                let mut unlocked_connection = connection.lock().unwrap();
-                let a = ApiLoggedResponse::from(unlocked_connection.read_logged());
+                let a = {
+                    let connection = self.connection.clone();
+                    let mut unlocked_connection = connection.lock().unwrap();
+                    ApiLoggedResponse::from(unlocked_connection.read_logged())
+                };
                 let b = serde_json::to_string_pretty(&a).unwrap();
-                response = response.set((status::Ok, b));
+                response_builder.status(http::StatusCode::OK).body(b)
             }
-            _ => {
-                response = response.set((status::NotFound, String::new()));
-            }
-        };
-
-        Ok(response)
+            _ => response_builder.status(http::StatusCode::NOT_FOUND).finish(),
+        }
     }
 }
 
@@ -118,14 +110,14 @@ fn is_port_number(port_string: String) -> Result<(), String> {
 }
 
 fn main() {
-    assert!(pretty_env_logger::try_init().is_ok());
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("restful_sunsaver=info")).init();
 
-    let matches = App::new(env!("CARGO_PKG_NAME"))
+    let matches = clap::App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .about("HTTP RESTful server for SunSaver MPPT ModBus data")
         .author("Guy Taylor <thebiggerguy.co.uk@gmail.com>")
         .arg(
-            Arg::with_name(CLI_ARG_DEVICE)
+            clap::Arg::with_name(CLI_ARG_DEVICE)
                 .help("Serial device e.g. /dev/ttyUSB0")
                 .long("device")
                 .short("d")
@@ -134,7 +126,7 @@ fn main() {
                 .required(true),
         )
         .arg(
-            Arg::with_name(CLI_ARG_PORT)
+            clap::Arg::with_name(CLI_ARG_PORT)
                 .help("HTTP server port")
                 .long("port")
                 .short("p")
@@ -145,7 +137,7 @@ fn main() {
                 .validator(is_port_number),
         )
         .arg(
-            Arg::with_name(CLI_ARG_WEB_ROOT)
+            clap::Arg::with_name(CLI_ARG_WEB_ROOT)
                 .help("HTTP server root folder")
                 .long("webroot")
                 .takes_value(true)
@@ -157,7 +149,8 @@ fn main() {
 
     let serial_interface = Path::new(matches.value_of(CLI_ARG_DEVICE).unwrap());
     let port_number = matches.value_of(CLI_ARG_PORT).unwrap().parse::<u16>().unwrap();
-    let web_root = Path::new(matches.value_of(CLI_ARG_WEB_ROOT).unwrap());
+    // TODO: Make static
+    //let web_root: &'static Path = Path::new(matches.value_of(CLI_ARG_WEB_ROOT).unwrap());
 
     if !serial_interface.exists() {
         panic!("Device does not exists: {:?}", serial_interface);
@@ -172,30 +165,19 @@ fn main() {
     };
 
     let api_handler = ApiHandler::new(connection);
-    let static_handler = Static::new(web_root);
-
-    let mut router = Router::new();
-    router.get("/", static_handler.clone(), "index");
-    router.get("/:filepath(*)", static_handler.clone(), "static");
-    router.get("/api/v1/status", api_handler.clone(), "api_v1_status");
-    router.get("/api/v1/logged", api_handler.clone(), "api_v2_logger");
-
-    let running = Arc::new(AtomicBool::new(true));
-    let r = running.clone();
-    ctrlc::set_handler(move || {
-        r.store(false, Ordering::SeqCst);
-        info!("Cought Ctrl-C");
-    })
-    .expect("Error setting Ctrl-C handler");
 
     info!("Starting server ...");
     let bind_address = format!("0.0.0.0:{}", port_number);
-    let mut listening = Iron::new(router).http(&bind_address).unwrap();
-    info!("Started server {}", bind_address);
-
-    info!("Use Ctrl-C to stop");
-    while running.load(Ordering::SeqCst) {}
-    listening.close().unwrap();
+    actix_web::server::new(move || {
+        actix_web::App::new()
+            .handler("/api/v1/status", api_handler.clone())
+            .handler("/api/v1/logged", api_handler.clone())
+            .handler("/", actix_web::fs::StaticFiles::new("web").unwrap().index_file("index.html"))
+            .finish()
+    })
+    .bind(bind_address)
+    .unwrap()
+    .run();
 }
 
 #[cfg(test)]

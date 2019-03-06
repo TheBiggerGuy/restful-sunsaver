@@ -69,7 +69,7 @@ impl PartialEq for LoggedResponseDay {
 mod test {
     use super::*;
 
-    #[cfg_attr(rustfmt, rustfmt_skip)]
+    #[rustfmt::skip]
     const DEFAULT_TEST_RAW_BITS: [u16; 16] = [
         0x2402, 0x0100, 0x0000, 0x1011, 0x11fb, 0x0047, 0x001b, 0x0000,
         0x0000, 0x1a84, 0x00b4, 0x0000, 0x010f, 0xffff, 0xffff, 0xffff,

@@ -55,7 +55,6 @@ mod test {
     use serde_json;
 
     #[test]
-    #[cfg_attr(rustfmt, rustfmt_skip)]
     fn sunsaverresponse_array_fault() {
         assert_eq!(ArrayFault::from(0b0000_0000_0000_0000), ArrayFault::empty());
         assert_eq!(ArrayFault::from(0b0000_0000_0000_0001), ArrayFault::OVERCURENT);
