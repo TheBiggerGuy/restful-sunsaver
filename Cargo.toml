@@ -11,7 +11,7 @@ travis-ci = { repository = "TheBiggerGuy/restful-sunsaver" }
 libmodbus-rs= "0.8.*"
 
 log = "0.4.*"
-env_logger = "0.6.*"
+env_logger = "0.8.*"
 
 actix-web = "0.7.*"
 http = "0.1"
